@@ -132,21 +132,8 @@ fun VoiceRecordingOverlay(
         (rmsDb / 12f).coerceIn(0f, 1f)
     }
 
-    var amplitudes by remember { mutableStateOf(List(32) { 0.08f }) }
-
-    LaunchedEffect(rmsDb, isListening) {
-        if (isListening) {
-            val norm = (rmsDb / 12f).coerceIn(0.08f, 1f)
-            val newList = amplitudes.toMutableList()
-            if (newList.size >= 32) {
-                newList.removeAt(0)
-            }
-            newList.add(norm)
-            amplitudes = newList
-        } else {
-            amplitudes = List(32) { 0.05f }
-        }
-    }
+    val frequencies by voiceManager.frequencies.collectAsState()
+    val amplitudes = if (isListening) frequencies else List(32) { 0.05f }
 
     val voskStatus by voiceManager.voskStatus.collectAsState()
     val voskProgress by voiceManager.voskProgress.collectAsState()
@@ -651,36 +638,30 @@ fun VoiceRecordingOverlay(
             .padding(bottom = boxBottomPadding, end = boxEndPadding),
         contentAlignment = Alignment.BottomEnd
     ) {
-        MovingNeonGlow(
-            isRecording = isVoiceActive || isListening,
-            amplitude = normalizedAmplitude,
-            widthDp = cardWidthAnim.value,
-            heightDp = cardHeightAnim.value
+        Box(
+            modifier = Modifier
+                .width(cardWidthAnim.value.dp)
+                .height(cardHeightAnim.value.dp)
+                .shadow(
+                    elevation = if (showAsExpanded) (24 * borderAlpha).dp else 24.dp,
+                    shape = RoundedCornerShape(28.dp),
+                    clip = false,
+                    ambientColor = if (showAsExpanded) neonColor1.copy(alpha = borderAlpha) else Indigo500.copy(alpha = 0.8f),
+                    spotColor = if (showAsExpanded) neonColor2.copy(alpha = borderAlpha) else Indigo500.copy(alpha = 0.8f)
+                )
+                .background(surfaceColor, RoundedCornerShape(28.dp))
+                .border(
+                    width = 2.dp,
+                    brush = dynamicGradient,
+                    shape = RoundedCornerShape(28.dp)
+                )
+                .clip(RoundedCornerShape(28.dp)),
+            contentAlignment = Alignment.BottomEnd
         ) {
             Box(
-                modifier = Modifier
-                    .width(cardWidthAnim.value.dp)
-                    .height(cardHeightAnim.value.dp)
-                    .shadow(
-                        elevation = if (showAsExpanded) (24 * borderAlpha).dp else 24.dp,
-                        shape = RoundedCornerShape(28.dp),
-                        clip = false,
-                        ambientColor = if (showAsExpanded) neonColor1.copy(alpha = borderAlpha) else Indigo500.copy(alpha = 0.8f),
-                        spotColor = if (showAsExpanded) neonColor2.copy(alpha = borderAlpha) else Indigo500.copy(alpha = 0.8f)
-                    )
-                    .background(surfaceColor, RoundedCornerShape(28.dp))
-                    .border(
-                        width = 2.dp,
-                        brush = dynamicGradient,
-                        shape = RoundedCornerShape(28.dp)
-                    )
-                    .clip(RoundedCornerShape(28.dp)),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.BottomEnd
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.BottomEnd
-                ) {
                     AnimatedContent(
                         targetState = currentOverlayState,
                         label = "overlay_content",
@@ -852,5 +833,4 @@ fun VoiceRecordingOverlay(
             }
         }
     }
-}
 

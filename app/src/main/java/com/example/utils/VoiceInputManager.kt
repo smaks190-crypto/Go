@@ -47,6 +47,9 @@ class VoiceInputManager(private val context: Context) {
     private val _rmsDb = MutableStateFlow(0f)
     val rmsDb: StateFlow<Float> = _rmsDb.asStateFlow()
 
+    private val _frequencies = MutableStateFlow<List<Float>>(List(32) { 0.08f })
+    val frequencies: StateFlow<List<Float>> = _frequencies.asStateFlow()
+
     private val _errorState = MutableStateFlow<String?>(null)
     val errorState: StateFlow<String?> = _errorState.asStateFlow()
 
@@ -253,6 +256,72 @@ class VoiceInputManager(private val context: Context) {
                         val volumeLevel = (Math.sqrt(rms) * 12.0).toFloat().coerceIn(0f, 12f)
                         _rmsDb.value = volumeLevel
 
+                        // Вычисляем частотный спектр через FFT для визуализатора
+                        try {
+                            val fftSize = 512
+                            val fftReal = FloatArray(fftSize)
+                            val fftImag = FloatArray(fftSize)
+
+                            // Накапливаем последние 512 семплов из буфера
+                            val startIndex = maxOf(0, nread - fftSize)
+                            for (i in 0 until fftSize) {
+                                val sampleIndex = startIndex + i
+                                if (sampleIndex < nread) {
+                                    val sample = buffer[sampleIndex].toFloat() / 32768.0f
+                                    // Применяем окно Ханнинга для сглаживания гармоник
+                                    val window = 0.5f * (1.0f - Math.cos(2.0 * Math.PI * i / (fftSize - 1)).toFloat())
+                                    fftReal[i] = sample * window
+                                } else {
+                                    fftReal[i] = 0f
+                                }
+                                fftImag[i] = 0f
+                            }
+
+                            fft(fftReal, fftImag)
+
+                            val numBins = fftSize / 2
+                            val magnitudes = FloatArray(numBins)
+                            for (i in 0 until numBins) {
+                                val r = fftReal[i]
+                                val im = fftImag[i]
+                                magnitudes[i] = Math.sqrt((r * r + im * im).toDouble()).toFloat()
+                            }
+
+                            // Группируем спектр в 32 полосы для частотного диапазона голоса (~60Гц - ~4000Гц)
+                            val startBin = 2
+                            val endBin = 130
+                            val numBands = 32
+                            val binsPerBand = (endBin - startBin) / numBands
+
+                            val newFrequencies = FloatArray(numBands)
+                            for (band in 0 until numBands) {
+                                var sum = 0f
+                                val bandStart = startBin + band * binsPerBand
+                                for (bin in bandStart until (bandStart + binsPerBand)) {
+                                    if (bin < numBins) {
+                                        sum += magnitudes[bin]
+                                    }
+                                }
+                                val avg = sum / binsPerBand
+
+                                // Логарифмическое нелинейное усиление для красивого движения волны
+                                val gain = 24.0f * (1.0f + band * 0.15f)
+                                val boosted = (avg * gain).coerceIn(0.08f, 1.0f)
+                                newFrequencies[band] = boosted
+                            }
+
+                            // Экспоненциальное сглаживание кадров (prev * 0.6f + current * 0.4f)
+                            val prev = _frequencies.value
+                            val smoothed = List(numBands) { index ->
+                                val currentVal = newFrequencies[index]
+                                val prevVal = if (index < prev.size) prev[index] else 0.08f
+                                (prevVal * 0.60f + currentVal * 0.40f).coerceIn(0.08f, 1.0f)
+                            }
+                            _frequencies.value = smoothed
+                        } catch (e: Exception) {
+                            Log.e("VoiceInputManager", "FFT error", e)
+                        }
+
                         if (isProcessingAllowed) {
                             val recognizer = voskRecognizer ?: break
                             if (recognizer.acceptWaveForm(buffer, nread)) {
@@ -279,6 +348,7 @@ class VoiceInputManager(private val context: Context) {
                     audioRecord.stop()
                     audioRecord.release()
                 } catch (_: Throwable) {}
+                _frequencies.value = List(32) { 0.08f }
             }.apply {
                 name = "VoskAudioRecordThread"
                 start()
@@ -383,5 +453,49 @@ class VoiceInputManager(private val context: Context) {
 
     fun destroy() {
         stopListening()
+    }
+
+    private fun fft(real: FloatArray, imag: FloatArray) {
+        val n = real.size
+        if (n <= 1) return
+
+        var j = 0
+        for (i in 0 until n) {
+            if (i < j) {
+                val tempR = real[i]
+                real[i] = real[j]
+                real[j] = tempR
+                val tempI = imag[i]
+                imag[i] = imag[j]
+                imag[j] = tempI
+            }
+            var m = n shr 1
+            while (m >= 1 && j >= m) {
+                j -= m
+                m = m shr 1
+            }
+            j += m
+        }
+
+        var size = 2
+        while (size <= n) {
+            val halfSize = size shr 1
+            for (i in 0 until n step size) {
+                for (k in 0 until halfSize) {
+                    val angle = -2.0 * Math.PI * k / size
+                    val cos = Math.cos(angle).toFloat()
+                    val sin = Math.sin(angle).toFloat()
+
+                    val tR = real[i + k + halfSize] * cos - imag[i + k + halfSize] * sin
+                    val tI = real[i + k + halfSize] * sin + imag[i + k + halfSize] * cos
+
+                    real[i + k + halfSize] = real[i + k] - tR
+                    imag[i + k + halfSize] = imag[i + k] - tI
+                    real[i + k] += tR
+                    imag[i + k] += tI
+                }
+            }
+            size = size shl 1
+        }
     }
 }

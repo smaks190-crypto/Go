@@ -1057,7 +1057,8 @@ fun MainAppScreen(viewModel: BudgetViewModel) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .imePadding(),
+                    .imePadding()
+                    .padding(bottom = 24.dp, end = 8.dp),
                 contentAlignment = Alignment.BottomEnd
             ) {
                 AnimatedVisibility(
