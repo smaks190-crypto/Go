@@ -3,11 +3,16 @@ package com.example.ui.components.dialogs
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.ui.draw.rotate
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -293,6 +298,11 @@ private fun CategoryLimitItemCard(
     }
 
     val animatedProgress by animateFloatAsState(targetValue = progress, label = "progress")
+    val rotationState by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+        label = "arrowRotation"
+    )
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -390,10 +400,12 @@ private fun CategoryLimitItemCard(
                         modifier = Modifier.size(24.dp)
                     ) {
                         Icon(
-                            imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            imageVector = Icons.Default.KeyboardArrowDown,
                             contentDescription = "Развернуть",
-                            tint = Slate400,
-                            modifier = Modifier.size(18.dp)
+                            tint = Indigo500,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .rotate(rotationState)
                         )
                     }
                 }
@@ -430,15 +442,25 @@ private fun CategoryLimitItemCard(
 
             AnimatedVisibility(
                 visible = isExpanded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
+                enter = fadeIn(animationSpec = tween(300)) + expandVertically(
+                    expandFrom = Alignment.Top,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ),
+                exit = fadeOut(animationSpec = tween(200)) + shrinkVertically(
+                    shrinkTowards = Alignment.Top,
+                    animationSpec = tween(250)
+                )
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp)
-                        .background(Slate950.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
-                        .padding(10.dp),
+                        .background(Slate950.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                        .border(1.dp, Slate800, RoundedCornerShape(12.dp))
+                        .padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
