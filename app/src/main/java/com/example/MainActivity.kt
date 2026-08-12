@@ -219,6 +219,7 @@ fun MainAppScreen(viewModel: BudgetViewModel) {
     val expandedIncome by viewModel.expandedIncome.collectAsState()
 
     val apiKey by viewModel.apiKey.collectAsState()
+    val speechEngineType by viewModel.speechEngineType.collectAsState()
     val isGeminiConsentGiven by viewModel.isGeminiConsentGiven.collectAsState()
     val isVoiceActive by viewModel.isVoiceActive.collectAsState()
     val isAnalyzingVoice by viewModel.isAnalyzingVoice.collectAsState()
@@ -947,6 +948,10 @@ fun MainAppScreen(viewModel: BudgetViewModel) {
                     apiKey = apiKey,
                     currentProfileName = currentProfile?.name ?: "",
                     profileId = currentProfile?.id ?: "default",
+                    selectedSpeechEngine = speechEngineType,
+                    onSpeechEngineChange = { newEngine ->
+                        viewModel.setSpeechEngineType(newEngine)
+                    },
                     onAvatarChanged = { avatarUpdateKey++ },
                     onRenameProfile = { newName ->
                         currentProfile?.let { viewModel.renameBudget(it.id, newName) }

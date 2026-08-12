@@ -7,9 +7,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -32,8 +34,10 @@ import com.example.ui.theme.*
 fun VoiceAndAISettingsTab(
     initialKey: String = "",
     currentPromptMode: String = "Финансовый эксперт (Стандарт)",
+    selectedSpeechEngine: com.example.utils.SpeechEngineType = com.example.utils.SpeechEngineType.SHERPA_ONNX,
     onSaveApiKey: (String) -> Unit = {},
     onPromptModeChange: (String) -> Unit = {},
+    onSpeechEngineChange: (com.example.utils.SpeechEngineType) -> Unit = {},
     onVoiceSensitivityChange: (Float) -> Unit = {},
     onBack: (() -> Unit)? = null,
     onClose: (() -> Unit)? = null
@@ -43,14 +47,17 @@ fun VoiceAndAISettingsTab(
     var isKeyVisible by remember { mutableStateOf(false) }
 
     var selectedPromptMode by remember { mutableStateOf(currentPromptMode) }
+    var activeEngine by remember(selectedSpeechEngine) { mutableStateOf(selectedSpeechEngine) }
     var voiceSensitivity by remember { mutableFloatStateOf(0.8f) }
     var autoRecognizeVoice by remember { mutableStateOf(true) }
 
     var showPromptDropdown by remember { mutableStateOf(false) }
+    var showEngineDropdown by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -353,7 +360,154 @@ fun VoiceAndAISettingsTab(
             }
         }
 
-        // 3. Голосовой ввода
+        // 3. Движок распознавания речи
+        Text(
+            text = "ДВИЖОК РАСПОЗНАВАНИЯ РЕЧИ (STT)",
+            color = Indigo500,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showEngineDropdown = !showEngineDropdown },
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Slate900),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Slate800)
+        ) {
+            Column(
+                modifier = Modifier.padding(14.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Indigo500.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.GraphicEq,
+                                contentDescription = null,
+                                tint = Indigo500,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Column {
+                            Text(
+                                text = "Выбор алгоритма STT",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Активный: ${activeEngine.displayName}",
+                                color = Indigo500,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = if (showEngineDropdown) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = Slate400,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                if (showEngineDropdown) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Divider(color = Slate800, thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        com.example.utils.SpeechEngineType.entries.forEach { engine ->
+                            val isSelected = activeEngine == engine
+                            val borderAlpha = if (isSelected) 0.8f else 0.2f
+                            val borderColor = if (isSelected) Emerald400 else Slate800
+                            val containerBg = if (isSelected) Emerald400.copy(alpha = 0.08f) else DarkBg
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(containerBg)
+                                    .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        activeEngine = engine
+                                        onSpeechEngineChange(engine)
+                                        showEngineDropdown = false
+                                    }
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text(
+                                            text = engine.displayName,
+                                            color = if (isSelected) Emerald400 else Color.White,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        if (engine == com.example.utils.SpeechEngineType.SHERPA_ONNX) {
+                                            Surface(
+                                                color = Indigo500.copy(alpha = 0.2f),
+                                                shape = RoundedCornerShape(4.dp)
+                                            ) {
+                                                Text(
+                                                    text = "ТОР",
+                                                    color = Indigo500,
+                                                    fontSize = 9.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Text(
+                                        text = engine.description,
+                                        color = Slate400,
+                                        fontSize = 11.sp
+                                    )
+                                }
+
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = {
+                                        activeEngine = engine
+                                        onSpeechEngineChange(engine)
+                                        showEngineDropdown = false
+                                    },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = Emerald400,
+                                        unselectedColor = Slate800
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Голосовой ввода
         Text(
             text = "ГОЛОСОВОЙ ВВОД ОПЕРАЦИЙ",
             color = Rose500,

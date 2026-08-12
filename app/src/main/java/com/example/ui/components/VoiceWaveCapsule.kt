@@ -280,16 +280,26 @@ private suspend fun startAudioRecording(
 }
 
 /**
- * Canvas с отрисовкой неоновой волны и плавных кривых Безье
+ * Canvas с отрисовкой живой неоновой волны с реакцией на спектр и громкость звука
  */
 @Composable
 fun VoiceWaveCanvas(
     amplitudes: List<Float>,
     modifier: Modifier = Modifier,
-    sensitivity: Float = 1.8f,
+    sensitivity: Float = 2.2f,
     isActive: Boolean = true
 ) {
-    // Градиент для линии волны
+    var phase by remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(isActive) {
+        if (!isActive) return@LaunchedEffect
+        while (isActive) {
+            withFrameNanos {
+                phase += 0.10f
+            }
+        }
+    }
+
     val lineGradient = remember {
         Brush.horizontalGradient(BorderGradientColors)
     }
@@ -300,7 +310,6 @@ fun VoiceWaveCanvas(
         val centerY = height / 2f
 
         if (amplitudes.isEmpty() || !isActive) {
-            // Отрисовываем плоскую линию, если запись не активна
             drawLine(
                 brush = lineGradient,
                 start = Offset(0f, centerY),
@@ -310,45 +319,71 @@ fun VoiceWaveCanvas(
             return@Canvas
         }
 
+        val avgVolume = amplitudes.average().toFloat().coerceIn(0.08f, 1.0f)
+        val maxVolume = (amplitudes.maxOrNull() ?: 0.1f).coerceIn(0.08f, 1.0f)
+
+        // Амплитуда колебаний от минимального фонового гула до громкой речи
+        val dynamicScale = ((avgVolume * 0.4f + maxVolume * 0.6f) * sensitivity).coerceIn(0.12f, 1.0f)
+        val waveAmplitude = (height * 0.44f) * dynamicScale
+
         val path = Path()
-        val count = amplitudes.size
-        val stepX = width / (count - 1).coerceAtLeast(1)
+        val steps = 64
+        val stepX = width / steps
 
-        // Рисуем первую точку
-        val firstY = centerY + (amplitudes[0] * centerY * sensitivity * 0.45f)
-        path.moveTo(0f, firstY)
+        var prevX = 0f
+        var prevY = centerY
 
-        // Строим плавные кривые Безье между точками амплитуд
-        for (i in 0 until count - 1) {
-            val x1 = i * stepX
-            val y1 = centerY + (amplitudes[i] * centerY * sensitivity * 0.45f)
-            val x2 = (i + 1) * stepX
-            val y2 = centerY + (amplitudes[i + 1] * centerY * sensitivity * 0.45f)
+        for (i in 0..steps) {
+            val x = i * stepX
+            val progress = i.toFloat() / steps
 
-            val controlX = (x1 + x2) / 2f
-            path.quadraticTo(x1, y1, controlX, (y1 + y2) / 2f)
+            val bandIndex = ((progress * (amplitudes.size - 1)).toInt()).coerceIn(0, amplitudes.size - 1)
+            val bandVal = amplitudes[bandIndex]
+
+            // Окно Ханнинга для затухания по бокам
+            val window = sin(progress * Math.PI.toFloat())
+
+            val fundamentalAngle = progress * (3.5f * 2.0f * Math.PI.toFloat()) + phase
+            val harmonicAngle = progress * (8.0f * 2.0f * Math.PI.toFloat()) - phase * 1.5f
+
+            val fundamental = sin(fundamentalAngle)
+            val harmonic = sin(harmonicAngle) * 0.35f * bandVal
+
+            val y = centerY + (fundamental + harmonic) * waveAmplitude * window
+
+            if (i == 0) {
+                path.moveTo(x, y)
+                prevX = x
+                prevY = y
+            } else {
+                val controlX1 = prevX + (stepX / 2f)
+                val controlY1 = prevY
+                val controlX2 = prevX + (stepX / 2f)
+                val controlY2 = y
+                path.cubicTo(controlX1, controlY1, controlX2, controlY2, x, y)
+                prevX = x
+                prevY = y
+            }
         }
 
-        // 1. Рисуем неоновое свечение (Glow) за счет nativeCanvas и размытия
+        // 1. Неоновое свечение с эффектом размытия
         drawIntoCanvas { canvas ->
             val paint = android.graphics.Paint().apply {
                 isAntiAlias = true
                 style = android.graphics.Paint.Style.STROKE
                 strokeWidth = 3.dp.toPx()
-                // Размытие краев для создания неонового свечения
-                maskFilter = BlurMaskFilter(6.dp.toPx(), BlurMaskFilter.Blur.NORMAL)
-                // Свечение цвета индиго/пурпурный
+                maskFilter = BlurMaskFilter(7.dp.toPx(), BlurMaskFilter.Blur.NORMAL)
                 color = android.graphics.Color.parseColor("#6366F1")
             }
             canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
         }
 
-        // 2. Рисуем саму четкую линию волны сверху
+        // 2. Яркая многоцветная градиентная линия поверх
         drawPath(
             path = path,
             brush = lineGradient,
             style = Stroke(
-                width = 2.dp.toPx(),
+                width = 2.5.dp.toPx(),
                 cap = androidx.compose.ui.graphics.StrokeCap.Round
             )
         )

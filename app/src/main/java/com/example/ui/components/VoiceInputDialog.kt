@@ -776,7 +776,7 @@ fun VoiceRecordingOverlay(
                                                                 "Скачивание офлайн-модели ($pct%)"
                                                             }
                                                             "EXTRACTING" -> "Настройка модели..."
-                                                            else -> "Слушаю..."
+                                                            else -> "Слушаю (${voiceManager.currentEngineType.displayName})..."
                                                         }
                                                         Text(
                                                             text = statusText.uppercase(),

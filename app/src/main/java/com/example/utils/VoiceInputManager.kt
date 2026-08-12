@@ -28,6 +28,15 @@ import java.net.URL
 import java.util.zip.ZipInputStream
 
 class VoiceInputManager(private val context: Context) {
+    var currentEngineType: SpeechEngineType = SpeechEngineType.SHERPA_ONNX
+        private set
+
+    fun setSpeechEngine(type: SpeechEngineType) {
+        currentEngineType = type
+        GlobalConsoleLogger.i("VOICE", "Движок распознавания речи изменен на: ${type.displayName}")
+    }
+
+    private var nativeRecognizer: NativeSpeechRecognizer? = null
     private var voskModel: Model? = null
     private var voskRecognizer: Recognizer? = null
     private var voskSpeechService: SpeechService? = null
@@ -86,7 +95,7 @@ class VoiceInputManager(private val context: Context) {
     }
 
     fun startListening(callerContext: Context) {
-        GlobalConsoleLogger.i("VOICE", "Запуск непрерывного прослушивания микрофона...")
+        GlobalConsoleLogger.i("VOICE", "Запуск распознавания микрофона (${currentEngineType.displayName})...")
         muteSystemBeeps()
         activeContextRef = java.lang.ref.WeakReference(callerContext)
         isContinuous = true
@@ -98,6 +107,26 @@ class VoiceInputManager(private val context: Context) {
         _recognizedText.value = ""
         _partialText.value = ""
         _errorState.value = null
+
+        if (currentEngineType == SpeechEngineType.NATIVE) {
+            _isListening.value = true
+            if (nativeRecognizer == null) {
+                nativeRecognizer = NativeSpeechRecognizer(callerContext)
+            }
+            nativeRecognizer?.startListening(
+                onResult = { text ->
+                    _recognizedText.value = text
+                    _partialText.value = text
+                    onChunkRecognized?.invoke(text)
+                },
+                onError = { err ->
+                    _errorState.value = err
+                    _isListening.value = false
+                    onErrorCallback?.invoke()
+                }
+            )
+            return
+        }
 
         val targetDir = File(context.filesDir, "vosk-model-small-ru-0.22")
         if (targetDir.exists() && targetDir.isDirectory && targetDir.list()?.isNotEmpty() == true) {
@@ -294,6 +323,8 @@ class VoiceInputManager(private val context: Context) {
                             val binsPerBand = (endBin - startBin) / numBands
 
                             val newFrequencies = FloatArray(numBands)
+                            val normalizedVol = (volumeLevel / 12f).coerceIn(0f, 1f)
+
                             for (band in 0 until numBands) {
                                 var sum = 0f
                                 val bandStart = startBin + band * binsPerBand
@@ -304,9 +335,9 @@ class VoiceInputManager(private val context: Context) {
                                 }
                                 val avg = sum / binsPerBand
 
-                                // Логарифмическое нелинейное усиление для красивого движения волны
-                                val gain = 24.0f * (1.0f + band * 0.15f)
-                                val boosted = (avg * gain).coerceIn(0.08f, 1.0f)
+                                // Комбинируем общую громкость с частотным распределением FFT
+                                val gain = 75.0f * (1.0f + band * 0.12f)
+                                val boosted = (normalizedVol * 0.45f + avg * gain).coerceIn(0.08f, 1.0f)
                                 newFrequencies[band] = boosted
                             }
 
@@ -410,6 +441,11 @@ class VoiceInputManager(private val context: Context) {
     }
 
     private fun stopRecognizerOnly() {
+        if (currentEngineType == SpeechEngineType.NATIVE) {
+            try {
+                nativeRecognizer?.stopListening()
+            } catch (_: Throwable) {}
+        }
         stopAudioThread()
         try {
             voskSpeechService?.stop()
@@ -421,6 +457,16 @@ class VoiceInputManager(private val context: Context) {
         activeContextRef = null
         _isListening.value = false
         _rmsDb.value = 0f
+    }
+
+    fun updateSimulatedFrequencies(volume: Float) {
+        val norm = volume.coerceIn(0f, 1f)
+        _rmsDb.value = norm * 12f
+        val base = norm.coerceIn(0.08f, 1.0f)
+        _frequencies.value = List(32) { index ->
+            val harmonic = (kotlin.math.sin(index * 0.4f) * 0.25f).toFloat()
+            (base + harmonic * norm).coerceIn(0.08f, 1.0f)
+        }
     }
 
     fun pauseListening() {

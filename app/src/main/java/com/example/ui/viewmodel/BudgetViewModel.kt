@@ -128,7 +128,27 @@ class BudgetViewModel(application: Application) : AndroidViewModel(application) 
     private val _voiceErrorMessage = MutableStateFlow<String?>(null)
     val voiceErrorMessage: StateFlow<String?> = _voiceErrorMessage.asStateFlow()
 
-    val voiceInputManager by lazy { com.example.utils.VoiceInputManager(getApplication()) }
+    private val _speechEngineType = MutableStateFlow<com.example.utils.SpeechEngineType>(
+        try {
+            val saved = prefs.getString("speech_engine_type", com.example.utils.SpeechEngineType.SHERPA_ONNX.name)
+            com.example.utils.SpeechEngineType.valueOf(saved ?: com.example.utils.SpeechEngineType.SHERPA_ONNX.name)
+        } catch (_: Exception) {
+            com.example.utils.SpeechEngineType.SHERPA_ONNX
+        }
+    )
+    val speechEngineType: StateFlow<com.example.utils.SpeechEngineType> = _speechEngineType.asStateFlow()
+
+    fun setSpeechEngineType(type: com.example.utils.SpeechEngineType) {
+        _speechEngineType.value = type
+        prefs.edit().putString("speech_engine_type", type.name).apply()
+        voiceInputManager.setSpeechEngine(type)
+    }
+
+    val voiceInputManager by lazy {
+        com.example.utils.VoiceInputManager(getApplication()).apply {
+            setSpeechEngine(_speechEngineType.value)
+        }
+    }
 
     private val _isVoiceActive = MutableStateFlow(false)
     val isVoiceActive: StateFlow<Boolean> = _isVoiceActive.asStateFlow()

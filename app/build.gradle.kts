@@ -3,7 +3,7 @@ plugins {
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
-  // alias(libs.plugins.secrets) // Отключено, чтобы не затирался BuildConfig.java
+  alias(libs.plugins.secrets)
 }
 
 import java.io.File
@@ -47,7 +47,7 @@ fun getVersionLetterName(number: Int): String {
 
 android {
   namespace = "com.example"
-  compileSdk = 36
+  compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
     applicationId = "ru.personalbudget.app.aadece"
@@ -58,13 +58,11 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    // Принудительно задаем строковую переменную, гарантируя наличие кавычек ""
-    val rawKey = (project.findProperty("GEMINI_API_KEY") as? String)
+    val geminiApiKey: String = (project.findProperty("GEMINI_API_KEY") as? String)
         ?.takeIf { it.isNotBlank() }
         ?: System.getenv("GEMINI_API_KEY")?.takeIf { it.isNotBlank() }
         ?: ""
-
-    buildConfigField("String", "GEMINI_API_KEY", "\"$rawKey\"")
+    buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
   }
 
   signingConfigs {
@@ -120,15 +118,9 @@ android {
   testOptions { unitTests { isIncludeAndroidResources = true } }
 }
 
-// Настройка вывода компиляции Kotlin
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    compilerOptions {
-        allWarningsAsErrors.set(false)
-        freeCompilerArgs.addAll(
-            "-Xshow-plugins-in-all-warnings",
-            "-Xsuppress-version-warnings"
-        )
-    }
+secrets {
+  propertiesFileName = ".env"
+  defaultPropertiesFileName = ".env.example"
 }
 
 dependencies {
