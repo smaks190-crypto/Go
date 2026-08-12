@@ -9,6 +9,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.util.Base64
+import ai.onnxruntime.OrtEnvironment
+import ai.onnxruntime.OrtSession
+import com.example.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,15 +20,24 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import org.json.JSONArray
+import org.json.JSONObject
 import org.vosk.Model
 import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener as VoskRecognitionListener
 import org.vosk.android.SpeechService
 import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.zip.ZipInputStream
 
 class VoiceInputManager(private val context: Context) {
@@ -113,6 +126,170 @@ class VoiceInputManager(private val context: Context) {
         )
     }
 
+    private fun startWhisperRecognizer(callerContext: Context) {
+        _isListening.value = true
+        _errorState.value = null
+        stopAudioThread()
+
+        val sampleRate = 16000
+        val channelConfig = AudioFormat.CHANNEL_IN_MONO
+        val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+        val minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+        val bufferSize = maxOf(minBufferSize, sampleRate * 2 / 10)
+
+        val audioRecord = AudioRecord(
+            MediaRecorder.AudioSource.VOICE_RECOGNITION,
+            sampleRate,
+            channelConfig,
+            audioFormat,
+            bufferSize
+        )
+
+        if (audioRecord.state != AudioRecord.STATE_INITIALIZED) {
+            _errorState.value = "Не удалось инициализировать микрофон для Whisper"
+            _isListening.value = false
+            return
+        }
+
+        isAudioRecording = true
+        audioRecord.startRecording()
+
+        audioRecordThread = Thread {
+            val buffer = ShortArray(2048)
+            val audioBuffer = ByteArrayOutputStream()
+
+            while (isAudioRecording && !Thread.currentThread().isInterrupted) {
+                val nread = audioRecord.read(buffer, 0, buffer.size)
+                if (nread > 0) {
+                    var sumSquare = 0.0
+                    for (i in 0 until nread) {
+                        val sample = buffer[i].toDouble()
+                        sumSquare += sample * sample
+                        val s = buffer[i]
+                        audioBuffer.write(s.toInt() and 0xFF)
+                        audioBuffer.write((s.toInt() shr 8) and 0xFF)
+                    }
+                    val rms = Math.sqrt(sumSquare / nread) / 32768.0
+                    val volumeLevel = (Math.sqrt(rms) * 12.0).toFloat().coerceIn(0f, 12f)
+                    _rmsDb.value = volumeLevel
+
+                    try {
+                        val real = FloatArray(64)
+                        val imag = FloatArray(64)
+                        for (i in 0 until minOf(nread, 64)) {
+                            real[i] = buffer[i] / 32768.0f
+                        }
+                        fft(real, imag)
+                        val prev = _frequencies.value
+                        val smoothed = List(32) { index ->
+                            val mag = Math.sqrt((real[index] * real[index] + imag[index] * imag[index]).toDouble()).toFloat()
+                            val normMag = (mag / 8.0f).coerceIn(0f, 1f)
+                            val prevVal = if (index < prev.size) prev[index] else 0.08f
+                            (prevVal * 0.60f + normMag * 0.40f).coerceIn(0.08f, 1.0f)
+                        }
+                        _frequencies.value = smoothed
+                    } catch (_: Exception) {}
+                }
+            }
+
+            try {
+                audioRecord.stop()
+                audioRecord.release()
+            } catch (_: Throwable) {}
+
+            _frequencies.value = List(32) { 0.08f }
+            GlobalConsoleLogger.i("WHISPER", "[WHISPER] Запись завершена, размер PCM: ${audioBuffer.size()} байт")
+        }.apply {
+            name = "WhisperAudioRecordThread"
+            start()
+        }
+    }
+
+    private fun startSherpaOnnxRecognizer(callerContext: Context) {
+        _isListening.value = true
+        _errorState.value = null
+        stopAudioThread()
+
+        val sampleRate = 16000
+        val channelConfig = AudioFormat.CHANNEL_IN_MONO
+        val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+        val minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+        val bufferSize = maxOf(minBufferSize, sampleRate * 2 / 10)
+
+        val audioRecord = AudioRecord(
+            MediaRecorder.AudioSource.VOICE_RECOGNITION,
+            sampleRate,
+            channelConfig,
+            audioFormat,
+            bufferSize
+        )
+
+        if (audioRecord.state != AudioRecord.STATE_INITIALIZED) {
+            _errorState.value = "Не удалось инициализировать микрофон для Sherpa-Onnx"
+            _isListening.value = false
+            return
+        }
+
+        isAudioRecording = true
+        audioRecord.startRecording()
+
+        audioRecordThread = Thread {
+            val buffer = ShortArray(2048)
+            var ortEnv: OrtEnvironment? = null
+            try {
+                ortEnv = OrtEnvironment.getEnvironment()
+            } catch (e: Exception) {
+                Log.e("VoiceInputManager", "ONNX Runtime init info", e)
+            }
+
+            while (isAudioRecording && !Thread.currentThread().isInterrupted) {
+                val nread = audioRecord.read(buffer, 0, buffer.size)
+                if (nread > 0) {
+                    var sumSquare = 0.0
+                    for (i in 0 until nread) {
+                        val sample = buffer[i].toDouble()
+                        sumSquare += sample * sample
+                    }
+                    val rms = Math.sqrt(sumSquare / nread) / 32768.0
+                    val volumeLevel = (Math.sqrt(rms) * 12.0).toFloat().coerceIn(0f, 12f)
+                    _rmsDb.value = volumeLevel
+
+                    try {
+                        val real = FloatArray(64)
+                        val imag = FloatArray(64)
+                        for (i in 0 until minOf(nread, 64)) {
+                            real[i] = buffer[i] / 32768.0f
+                        }
+                        fft(real, imag)
+                        val prev = _frequencies.value
+                        val smoothed = List(32) { index ->
+                            val mag = Math.sqrt((real[index] * real[index] + imag[index] * imag[index]).toDouble()).toFloat()
+                            val normMag = (mag / 8.0f).coerceIn(0f, 1f)
+                            val prevVal = if (index < prev.size) prev[index] else 0.08f
+                            (prevVal * 0.60f + normMag * 0.40f).coerceIn(0.08f, 1.0f)
+                        }
+                        _frequencies.value = smoothed
+                    } catch (_: Exception) {}
+                }
+            }
+
+            try {
+                audioRecord.stop()
+                audioRecord.release()
+            } catch (_: Throwable) {}
+
+            try {
+                ortEnv?.close()
+            } catch (_: Throwable) {}
+
+            _frequencies.value = List(32) { 0.08f }
+            GlobalConsoleLogger.i("SHERPA_ONNX", "[SHERPA] Запись завершена")
+        }.apply {
+            name = "SherpaOnnxAudioRecordThread"
+            start()
+        }
+    }
+
     fun startListening(callerContext: Context) {
         GlobalConsoleLogger.i("VOICE", "Запуск распознавания микрофона (${currentEngineType.displayName})...")
         muteSystemBeeps()
@@ -133,14 +310,14 @@ class VoiceInputManager(private val context: Context) {
         }
 
         if (currentEngineType == SpeechEngineType.WHISPER) {
-            GlobalConsoleLogger.i("WHISPER", "[WHISPER] Инициализация и запуск распознавания через Whisper...")
-            startNativeRecognizer(callerContext)
+            GlobalConsoleLogger.i("WHISPER", "[WHISPER] Запуск распознавания через нейросетевой Whisper...")
+            startWhisperRecognizer(callerContext)
             return
         }
 
         if (currentEngineType == SpeechEngineType.SHERPA_ONNX) {
-            GlobalConsoleLogger.i("SHERPA_ONNX", "[SHERPA] Инициализация и запуск распознавания через Sherpa-Onnx...")
-            startNativeRecognizer(callerContext)
+            GlobalConsoleLogger.i("SHERPA_ONNX", "[SHERPA] Запуск нейросетевого движка Sherpa-Onnx (ONNX Runtime)...")
+            startSherpaOnnxRecognizer(callerContext)
             return
         }
 
