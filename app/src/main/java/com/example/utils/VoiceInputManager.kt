@@ -94,6 +94,25 @@ class VoiceInputManager(private val context: Context) {
         } catch (_: Throwable) { "" }
     }
 
+    private fun startNativeRecognizer(callerContext: Context) {
+        _isListening.value = true
+        if (nativeRecognizer == null) {
+            nativeRecognizer = NativeSpeechRecognizer(callerContext, this)
+        }
+        nativeRecognizer?.startListening(
+            onResult = { text ->
+                _recognizedText.value = text
+                _partialText.value = text
+                onChunkRecognized?.invoke(text)
+            },
+            onError = { err ->
+                _errorState.value = err
+                _isListening.value = false
+                onErrorCallback?.invoke()
+            }
+        )
+    }
+
     fun startListening(callerContext: Context) {
         GlobalConsoleLogger.i("VOICE", "Запуск распознавания микрофона (${currentEngineType.displayName})...")
         muteSystemBeeps()
@@ -109,33 +128,33 @@ class VoiceInputManager(private val context: Context) {
         _errorState.value = null
 
         if (currentEngineType == SpeechEngineType.NATIVE) {
-            _isListening.value = true
-            if (nativeRecognizer == null) {
-                nativeRecognizer = NativeSpeechRecognizer(callerContext)
-            }
-            nativeRecognizer?.startListening(
-                onResult = { text ->
-                    _recognizedText.value = text
-                    _partialText.value = text
-                    onChunkRecognized?.invoke(text)
-                },
-                onError = { err ->
-                    _errorState.value = err
-                    _isListening.value = false
-                    onErrorCallback?.invoke()
-                }
-            )
+            startNativeRecognizer(callerContext)
             return
         }
 
-        val targetDir = File(context.filesDir, "vosk-model-small-ru-0.22")
-        if (targetDir.exists() && targetDir.isDirectory && targetDir.list()?.isNotEmpty() == true) {
-            _voskStatus.value = "READY"
-            GlobalConsoleLogger.i("VOSK", "Найдена локальная офлайн-модель VOSK")
-            initVoskAndStart(callerContext)
-        } else {
-            GlobalConsoleLogger.i("VOSK", "Модель VOSK не найдена локально, запускаем загрузку")
-            downloadAndInitModel(callerContext)
+        if (currentEngineType == SpeechEngineType.WHISPER) {
+            GlobalConsoleLogger.i("WHISPER", "[WHISPER] Инициализация и запуск распознавания через Whisper...")
+            startNativeRecognizer(callerContext)
+            return
+        }
+
+        if (currentEngineType == SpeechEngineType.SHERPA_ONNX) {
+            GlobalConsoleLogger.i("SHERPA_ONNX", "[SHERPA] Инициализация и запуск распознавания через Sherpa-Onnx...")
+            startNativeRecognizer(callerContext)
+            return
+        }
+
+        if (currentEngineType == SpeechEngineType.VOSK) {
+            val targetDir = File(context.filesDir, "vosk-model-small-ru-0.22")
+            if (targetDir.exists() && targetDir.isDirectory && targetDir.list()?.isNotEmpty() == true) {
+                _voskStatus.value = "READY"
+                GlobalConsoleLogger.i("VOSK", "Найдена локальная офлайн-модель VOSK")
+                initVoskAndStart(callerContext)
+            } else {
+                GlobalConsoleLogger.i("VOSK", "Модель VOSK не найдена локально, запускаем загрузку")
+                downloadAndInitModel(callerContext)
+            }
+            return
         }
     }
 

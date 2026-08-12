@@ -9,6 +9,9 @@ import android.media.MediaRecorder
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -55,30 +58,11 @@ private val BorderGradientColors = listOf(
 fun VoiceWaveCapsule(
     modifier: Modifier = Modifier,
     isVisible: Boolean = true,
+    audioLevel: Float = 0f,
+    statusText: String = "Слушаю...",
+    amplitudes: List<Float>? = null,
     onClose: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-    var currentVolume by remember { mutableFloatStateOf(0f) }
-    var statusText by remember { mutableStateOf("Слушаю...") }
-
-    LaunchedEffect(isVisible) {
-        if (!isVisible) return@LaunchedEffect
-
-        val hasPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.RECORD_AUDIO
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (hasPermission) {
-            statusText = "Слушаю..."
-            startAudioRecording { volume ->
-                currentVolume = volume
-            }
-        } else {
-            statusText = "Нет разрешения на микрофон"
-        }
-    }
-
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn(),
@@ -121,12 +105,21 @@ fun VoiceWaveCapsule(
 
                     Spacer(modifier = Modifier.height(2.dp))
 
-                    SmoothWaveCanvas(
-                        volume = currentVolume,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(28.dp)
-                    )
+                    if (amplitudes != null) {
+                        VoiceWaveCanvas(
+                            amplitudes = amplitudes,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(28.dp)
+                        )
+                    } else {
+                        SmoothWaveCanvas(
+                            volume = audioLevel,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(28.dp)
+                        )
+                    }
                 }
             }
 
@@ -158,13 +151,24 @@ private fun SmoothWaveCanvas(
     // Бесконечная фаза для плавного движения волны
     var phase by remember { mutableFloatStateOf(0f) }
 
-    LaunchedEffect(Unit) {
+    val isBelowThreshold = volume < 0.05f
+
+    LaunchedEffect(isBelowThreshold) {
+        if (isBelowThreshold) return@LaunchedEffect
         while (isActive) {
             withFrameNanos {
                 phase += 0.08f // Скорость бега волны
             }
         }
     }
+
+    // Animation for amplitude transitioning to 0f when below threshold
+    val targetVolume = if (isBelowThreshold) 0f else volume
+    val animatedVolume by animateFloatAsState(
+        targetValue = targetVolume,
+        animationSpec = tween(durationMillis = 150),
+        label = "volume_animation"
+    )
 
     Canvas(modifier = modifier) {
         val width = size.width
@@ -174,9 +178,19 @@ private fun SmoothWaveCanvas(
         val wavePath = Path()
         val brush = Brush.horizontalGradient(BorderGradientColors)
 
+        if (animatedVolume == 0f) {
+            drawLine(
+                brush = brush,
+                start = Offset(0f, centerY),
+                end = Offset(width, centerY),
+                strokeWidth = 2.5.dp.toPx()
+            )
+            return@Canvas
+        }
+
         // Параметры синусоиды
-        val waveCount = 3.5f // Всего 3.5 полных волн по всей ширине (без мелкой расчески)
-        val maxAmplitude = (height / 2.5f) * volume.coerceIn(0.15f, 1.0f)
+        val waveCount = 3.5f // Всего 3.5 полных волн по всей ширине
+        val maxAmplitude = (height / 2.5f) * animatedVolume.coerceIn(0.15f, 1.0f)
 
         val steps = 60 // Достаточно точек для идеальной гладкости
         val stepX = width / steps
@@ -291,8 +305,11 @@ fun VoiceWaveCanvas(
 ) {
     var phase by remember { mutableFloatStateOf(0f) }
 
-    LaunchedEffect(isActive) {
-        if (!isActive) return@LaunchedEffect
+    val rawMaxVolume = if (amplitudes.isNotEmpty()) amplitudes.maxOrNull() ?: 0f else 0f
+    val isBelowThreshold = rawMaxVolume < 0.05f
+
+    LaunchedEffect(isBelowThreshold, isActive) {
+        if (!isActive || isBelowThreshold) return@LaunchedEffect
         while (isActive) {
             withFrameNanos {
                 phase += 0.10f
@@ -304,12 +321,20 @@ fun VoiceWaveCanvas(
         Brush.horizontalGradient(BorderGradientColors)
     }
 
+    // Animation for amplitude transitioning to 0f when below threshold
+    val targetAmplitudeScale = if (isBelowThreshold) 0f else 1f
+    val amplitudeScale by animateFloatAsState(
+        targetValue = targetAmplitudeScale,
+        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+        label = "wave_amplitude_scale"
+    )
+
     Canvas(modifier = modifier) {
         val width = size.width
         val height = size.height
         val centerY = height / 2f
 
-        if (amplitudes.isEmpty() || !isActive) {
+        if (amplitudes.isEmpty() || !isActive || amplitudeScale == 0f) {
             drawLine(
                 brush = lineGradient,
                 start = Offset(0f, centerY),
@@ -324,7 +349,7 @@ fun VoiceWaveCanvas(
 
         // Амплитуда колебаний от минимального фонового гула до громкой речи
         val dynamicScale = ((avgVolume * 0.4f + maxVolume * 0.6f) * sensitivity).coerceIn(0.12f, 1.0f)
-        val waveAmplitude = (height * 0.44f) * dynamicScale
+        val waveAmplitude = (height * 0.44f) * dynamicScale * amplitudeScale
 
         val path = Path()
         val steps = 64
