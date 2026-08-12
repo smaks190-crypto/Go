@@ -47,7 +47,7 @@ fun getVersionLetterName(number: Int): String {
 
 android {
   namespace = "com.example"
-  compileSdk { version = release(36) { minorApiLevel = 1 } }
+  compileSdk = 36
 
   defaultConfig {
     applicationId = "ru.personalbudget.app.aadece"
@@ -57,6 +57,13 @@ android {
     versionName = getVersionLetterName(buildNum)
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    // Безопасное чтение GEMINI_API_KEY с фолбеком на пустые кавычки
+    val geminiKey = (project.findProperty("GEMINI_API_KEY") as? String)
+        ?.takeIf { it.isNotBlank() }
+        ?: System.getenv("GEMINI_API_KEY")?.takeIf { it.isNotBlank() }
+        ?: ""
+    buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
   }
 
   signingConfigs {
@@ -110,6 +117,17 @@ android {
     buildConfig = true
   }
   testOptions { unitTests { isIncludeAndroidResources = true } }
+}
+
+// Настройка компилятора: четкая подсветка ошибок и развернутый формат логов
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        allWarningsAsErrors.set(false)
+        freeCompilerArgs.addAll(
+            "-Xshow-plugins-in-all-warnings",
+            "-Xsuppress-version-warnings"
+        )
+    }
 }
 
 secrets {
