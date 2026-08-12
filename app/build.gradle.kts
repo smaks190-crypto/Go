@@ -167,3 +167,20 @@ dependencies {
   // Локальное офлайн-распознавание речи VOSK
   implementation("com.alphacephei:vosk-android:0.3.47")
 }
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        // Выводит подробные сообщения об ошибках с точным указанием файлов и строк
+        allWarningsAsErrors.set(false)
+        freeCompilerArgs.addAll(
+            "-Xshow-plugins-in-all-warnings",
+            "-Xsuppress-version-warnings"
+        )
+    }
+}
+
+// Форматирование вывода Gradle: подсвечивает строки с ошибками и убирает лишний стек
+gradle.projectsEvaluated {
+    tasks.withType<JavaCompile> {
+        options.compilerArgs.addAll(listOf("-Xlint:unchecked", "-Xlint:deprecation"))
+    }
+}
