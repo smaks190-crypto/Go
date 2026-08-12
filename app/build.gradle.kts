@@ -3,7 +3,7 @@ plugins {
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
-  alias(libs.plugins.secrets)
+  // alias(libs.plugins.secrets) // Отключено, чтобы не затирался BuildConfig.java
 }
 
 import java.io.File
@@ -58,12 +58,13 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    // Безопасное чтение GEMINI_API_KEY с фолбеком на пустые кавычки
-    val geminiKey = (project.findProperty("GEMINI_API_KEY") as? String)
+    // Принудительно задаем строковую переменную, гарантируя наличие кавычек ""
+    val rawKey = (project.findProperty("GEMINI_API_KEY") as? String)
         ?.takeIf { it.isNotBlank() }
         ?: System.getenv("GEMINI_API_KEY")?.takeIf { it.isNotBlank() }
         ?: ""
-    buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
+
+    buildConfigField("String", "GEMINI_API_KEY", "\"$rawKey\"")
   }
 
   signingConfigs {
@@ -119,7 +120,7 @@ android {
   testOptions { unitTests { isIncludeAndroidResources = true } }
 }
 
-// Настройка компилятора: четкая подсветка ошибок и развернутый формат логов
+// Настройка вывода компиляции Kotlin
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
         allWarningsAsErrors.set(false)
@@ -128,11 +129,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
             "-Xsuppress-version-warnings"
         )
     }
-}
-
-secrets {
-  propertiesFileName = ".env"
-  defaultPropertiesFileName = ".env.example"
 }
 
 dependencies {
