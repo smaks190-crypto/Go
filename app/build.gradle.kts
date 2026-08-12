@@ -178,7 +178,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     compilerOptions {
         allWarningsAsErrors.set(false)
         freeCompilerArgs.addAll(
-            "-Xshow-plugins-in-all-warnings",
             "-Xsuppress-version-warnings"
         )
     }
