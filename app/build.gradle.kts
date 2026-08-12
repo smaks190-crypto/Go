@@ -3,7 +3,7 @@ plugins {
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
-  alias(libs.plugins.secrets)
+  // alias(libs.plugins.secrets)
 }
 
 import java.io.File
@@ -58,11 +58,12 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    val geminiApiKey: String = (project.findProperty("GEMINI_API_KEY") as? String)
+    val geminiKey = (project.findProperty("GEMINI_API_KEY") as? String)
         ?.takeIf { it.isNotBlank() }
         ?: System.getenv("GEMINI_API_KEY")?.takeIf { it.isNotBlank() }
         ?: ""
-    buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+
+    buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
   }
 
   signingConfigs {
@@ -118,10 +119,10 @@ android {
   testOptions { unitTests { isIncludeAndroidResources = true } }
 }
 
-secrets {
-  propertiesFileName = ".env"
-  defaultPropertiesFileName = ".env.example"
-}
+// secrets {
+//   propertiesFileName = ".env"
+//   defaultPropertiesFileName = ".env.example"
+// }
 
 dependencies {
   implementation(platform(libs.androidx.compose.bom))
