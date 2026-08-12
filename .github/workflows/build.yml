@@ -44,7 +44,7 @@ jobs:
 
       # СОБИРАЕМ APK С ПОМОЩЬЮ СИСТЕМНОГО GRADLE (ОТЛАДКА)
       - name: Build Debug APK
-        run: gradle assembleDebug
+        run: gradle assembleDebug --console=rich
 
       # СОХРАНЯЕМ ГОТОВЫЙ ФАЙЛ ОТЛАДКИ
       - name: Upload APK artifact

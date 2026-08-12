@@ -173,3 +173,13 @@ dependencies {
   // Локальное офлайн-распознавание речи VOSK
   implementation("com.alphacephei:vosk-android:0.3.47")
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        allWarningsAsErrors.set(false)
+        freeCompilerArgs.addAll(
+            "-Xshow-plugins-in-all-warnings",
+            "-Xsuppress-version-warnings"
+        )
+    }
+}
