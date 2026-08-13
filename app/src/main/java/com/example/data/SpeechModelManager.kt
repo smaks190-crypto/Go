@@ -14,6 +14,12 @@ import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
+import java.io.IOException
 import java.net.URL
 import java.util.zip.ZipInputStream
 
@@ -64,7 +70,7 @@ class SpeechModelManager(private val context: Context) {
     private fun getDownloadUrl(engineType: ModelEngineType): String {
         return when (engineType) {
             ModelEngineType.VOSK -> "https://alphacephei.com/vosk/models/vosk-model-small-ru-0.22.zip"
-            ModelEngineType.SHERPA_ONNX -> "https://huggingface.co/csukuangfj/sherpa-onnx-paraformer-ru-2023-09-18/resolve/main/model.onnx"
+            ModelEngineType.SHERPA_ONNX -> "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-streaming-zipformer-ru-2023-09-18.tar.bz2"
             ModelEngineType.WHISPER -> "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin"
         }
     }
@@ -178,18 +184,23 @@ class SpeechModelManager(private val context: Context) {
                 val urlString = getDownloadUrl(engineType)
                 GlobalConsoleLogger.i("MODEL_MANAGER", "Начало загрузки модели ${engineType.name} с $urlString")
 
-                val url = URL(urlString)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.connectTimeout = 30000
-                connection.readTimeout = 30000
-                connection.connect()
+                val client = OkHttpClient.Builder()
+                    .followRedirects(true)
+                    .followSslRedirects(true)
+                    .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                    .build()
 
-                if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                    throw Exception("Ошибка HTTP: ${connection.responseCode}")
+                val request = Request.Builder().url(urlString).build()
+                val response = client.newCall(request).execute()
+
+                if (!response.isSuccessful) {
+                    throw Exception("Ошибка HTTP: ${response.code}")
                 }
 
-                val fileLength = connection.contentLengthLong
-                val inputStream = BufferedInputStream(connection.inputStream)
+                val body = response.body ?: throw Exception("Пустой ответ от сервера")
+                val fileLength = body.contentLength()
+                val inputStream = BufferedInputStream(body.byteStream())
                 val targetDir = getModelDir(engineType)
                 targetDir.mkdirs()
 
@@ -283,19 +294,26 @@ class SpeechModelManager(private val context: Context) {
 
                     // Also download the small token file for Paraformer RU to work!
                     GlobalConsoleLogger.i("MODEL_MANAGER", "Загрузка вспомогательного файла токенов для Sherpa-ONNX...")
-                    val tokensUrl = URL("https://huggingface.co/csukuangfj/sherpa-onnx-paraformer-ru-2023-09-18/resolve/main/tokens.txt")
-                    val tokensConnection = tokensUrl.openConnection() as HttpURLConnection
-                    tokensConnection.connectTimeout = 15000
-                    tokensConnection.readTimeout = 15000
-                    tokensConnection.connect()
-                    if (tokensConnection.responseCode == HttpURLConnection.HTTP_OK) {
-                        val tokensFile = File(targetDir, "tokens.txt")
-                        tokensConnection.inputStream.use { tokenInput ->
-                            FileOutputStream(tokensFile).use { tokenOutput ->
-                                tokenInput.copyTo(tokenOutput)
+                    val tokensUrl = "https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/scripts/paraformer/ru/tokens.txt"
+                    val client = OkHttpClient.Builder()
+                        .followRedirects(true)
+                        .followSslRedirects(true)
+                        .build()
+                    val tokenReq = Request.Builder().url(tokensUrl).build()
+                    try {
+                        val tokenRes = client.newCall(tokenReq).execute()
+                        if (tokenRes.isSuccessful) {
+                            val tokensFile = File(targetDir, "tokens.txt")
+                            tokenRes.body?.byteStream()?.use { tokenInput ->
+                                FileOutputStream(tokensFile).use { tokenOutput ->
+                                    tokenInput.copyTo(tokenOutput)
+                                }
                             }
+                        } else {
+                            val tokensFile = File(targetDir, "tokens.txt")
+                            tokensFile.writeText("placeholder")
                         }
-                    } else {
+                    } catch (e: Exception) {
                         // Fallback: Create placeholder tokens.txt if needed
                         val tokensFile = File(targetDir, "tokens.txt")
                         tokensFile.writeText("placeholder")

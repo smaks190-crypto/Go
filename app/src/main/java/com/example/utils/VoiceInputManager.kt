@@ -303,24 +303,30 @@ class VoiceInputManager(private val context: Context) {
             val audioBuffer = ByteArrayOutputStream()
 
             while (isAudioRecording && !Thread.currentThread().isInterrupted) {
-                val nread = audioRecord.read(buffer, 0, buffer.size)
-                if (nread > 0) {
+                val readShorts = audioRecord.read(buffer, 0, buffer.size)
+                if (readShorts > 0) {
                     var sumSquare = 0.0
-                    for (i in 0 until nread) {
+                    for (i in 0 until readShorts) {
                         val sample = buffer[i].toDouble()
                         sumSquare += sample * sample
                         val s = buffer[i]
                         audioBuffer.write(s.toInt() and 0xFF)
                         audioBuffer.write((s.toInt() shr 8) and 0xFF)
                     }
-                    val rms = Math.sqrt(sumSquare / nread) / 32768.0
+                    val rms = Math.sqrt(sumSquare / readShorts) / 32768.0
                     val volumeLevel = (Math.sqrt(rms) * 12.0).toFloat().coerceIn(0f, 12f)
                     _rmsDb.value = volumeLevel
+
+                    android.util.Log.d("[WHISPER]", "Read PCM shorts: $readShorts, RMS level: $rms")
+                    val floatBuffer = FloatArray(readShorts) { i ->
+                        buffer[i] / 32768.0f
+                    }
+                    // TODO: Передавать floatBuffer в обработчик whisper_full_default / whisperContext.benchFull()
 
                     try {
                         val real = FloatArray(64)
                         val imag = FloatArray(64)
-                        for (i in 0 until minOf(nread, 64)) {
+                        for (i in 0 until minOf(readShorts, 64)) {
                             real[i] = buffer[i] / 32768.0f
                         }
                         fft(real, imag)
