@@ -859,6 +859,27 @@ class BudgetRepository(
             mapOf("cat" to it.category, "sub" to it.subcategory, "sum" to it.amount)
         }
 
+        val currentCatExpenses = filteredTransactions.filter { it.type == "expense" }
+            .groupBy { it.category }
+            .mapValues { entry -> entry.value.sumOf { it.amount } }
+
+        val prevCatExpenses = previousTransactions.filter { it.type == "expense" }
+            .groupBy { it.category }
+            .mapValues { entry -> entry.value.sumOf { it.amount } }
+
+        val categoryGrowth = currentCatExpenses.map { (cat, currentSum) ->
+            val prevSum = prevCatExpenses[cat] ?: 0.0
+            val diff = currentSum - prevSum
+            val pct = if (prevSum > 0) ((diff / prevSum) * 100).toInt() else 100
+            mapOf(
+                "category" to cat,
+                "currentSum" to currentSum,
+                "prevSum" to prevSum,
+                "diff" to diff,
+                "percentGrowth" to pct
+            )
+        }
+
         val comparisonDump = mapOf(
             "period" to periodName,
             "currentIncome" to totalIncome,
@@ -873,16 +894,22 @@ class BudgetRepository(
             "expenseDiff" to expenseDiff,
             "overallTrend" to (if (isBetter) "ЛУЧШАЯ (улучшение)" else "ХУДШАЯ (ухудшение)"),
             "incomes" to incomesSummary,
-            "expenses" to expensesSummary
+            "expenses" to expensesSummary,
+            "categoryGrowthBreakdown" to categoryGrowth
         )
 
-        val userQuery = "Проведи подробный финансовый аудит бюджета за прошлый период по предоставленным данным.\n\n" +
+        val userQuery = "Проведи подробный финансовый аудит бюджета и умный ИИ-анализ с персональными рекомендациями по предоставленным данным.\n\n" +
                 "DATA: $comparisonDump\n\n" +
                 "СТРУКТУРА ОТВЕТА:\n" +
                 "# Главный Вердикт\n" +
                 "Крупный вывод первой строчкой: результат изменился в **ЛУЧШУЮ** или **ХУДШУЮ** сторону по сравнению с прошлым периодом.\n\n" +
                 "## Цифры и Динамика\n" +
-                "Сравнительные итоги с процентами и разницей.\n\n" +
+                "Сравнительные итоги с процентами и разницей по категориям.\n\n" +
+                "## 💡 Персональные ИИ-Инсайты и Лимиты\n" +
+                "Анализ аномального роста расходов (например, где рост > 15-30%). Укажи конкретные суммы и потенциальную экономию.\n" +
+                "Если категории требуют оптимизации, предложи 1-2 конкретных лимита. Для каждого предложенного лимита обязательно добавь в конец отдельной строкой маркер формата:\n" +
+                "[ACTION:LIMIT|НазваниеКатегории|СуммаЛимита]\n" +
+                "(например: [ACTION:LIMIT|Еда и продукты|15000]).\n\n" +
                 "## Прожарка Транжиры\n" +
                 "Искрометный разбор нелепых трат с миксом популярных и актуальных мемов, широкой мировой литературы различных авторов и эпох, а также исторических аналогий.\n\n" +
                 "## Ачивки и Достижения\n" +
@@ -995,6 +1022,27 @@ class BudgetRepository(
             mapOf("cat" to it.category, "sub" to it.subcategory, "sum" to it.amount)
         }
 
+        val currentCatExpenses = filteredTransactions.filter { it.type == "expense" }
+            .groupBy { it.category }
+            .mapValues { entry -> entry.value.sumOf { it.amount } }
+
+        val prevCatExpenses = previousTransactions.filter { it.type == "expense" }
+            .groupBy { it.category }
+            .mapValues { entry -> entry.value.sumOf { it.amount } }
+
+        val categoryGrowth = currentCatExpenses.map { (cat, currentSum) ->
+            val prevSum = prevCatExpenses[cat] ?: 0.0
+            val diff = currentSum - prevSum
+            val pct = if (prevSum > 0) ((diff / prevSum) * 100).toInt() else 100
+            mapOf(
+                "category" to cat,
+                "currentSum" to currentSum,
+                "prevSum" to prevSum,
+                "diff" to diff,
+                "percentGrowth" to pct
+            )
+        }
+
         val comparisonDump = mapOf(
             "period" to periodName,
             "currentIncome" to totalIncome,
@@ -1009,16 +1057,22 @@ class BudgetRepository(
             "expenseDiff" to expenseDiff,
             "overallTrend" to (if (isBetter) "ЛУЧШАЯ (улучшение)" else "ХУДШАЯ (ухудшение)"),
             "incomes" to incomesSummary,
-            "expenses" to expensesSummary
+            "expenses" to expensesSummary,
+            "categoryGrowthBreakdown" to categoryGrowth
         )
 
-        val userQuery = "Проведи подробный финансовый аудит бюджета за прошлый период по предоставленным данным.\n\n" +
+        val userQuery = "Проведи подробный финансовый аудит бюджета и умный ИИ-анализ с персональными рекомендациями по предоставленным данным.\n\n" +
                 "DATA: $comparisonDump\n\n" +
                 "СТРУКТУРА ОТВЕТА:\n" +
                 "# Главный Вердикт\n" +
                 "Крупный вывод первой строчкой: результат изменился в **ЛУЧШУЮ** или **ХУДШУЮ** сторону по сравнению с прошлым периодом.\n\n" +
                 "## Цифры и Динамика\n" +
-                "Сравнительные итоги с процентами и разницей.\n\n" +
+                "Сравнительные итоги с процентами и разницей по категориям.\n\n" +
+                "## 💡 Персональные ИИ-Инсайты и Лимиты\n" +
+                "Анализ аномального роста расходов (например, где рост > 15-30%). Укажи конкретные суммы и потенциальную экономию.\n" +
+                "Если категории требуют оптимизации, предложи 1-2 конкретных лимита. Для каждого предложенного лимита обязательно добавь в конец отдельной строкой маркер формата:\n" +
+                "[ACTION:LIMIT|НазваниеКатегории|СуммаЛимита]\n" +
+                "(например: [ACTION:LIMIT|Еда и продукты|15000]).\n\n" +
                 "## Прожарка Транжиры\n" +
                 "Искрометный разбор нелепых трат с миксом популярных и актуальных мемов, широкой мировой литературы различных авторов и эпох, а также исторических аналогий.\n\n" +
                 "## Ачивки и Достижения\n" +

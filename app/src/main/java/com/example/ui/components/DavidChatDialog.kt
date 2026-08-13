@@ -9,6 +9,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -71,6 +73,7 @@ fun ReportDetailsDialog(
     onRequestAudit: () -> Any = {},
     onDeleteNotification: (Long) -> Unit = {},
     onMarkAllRead: () -> Unit = {},
+    onApplyCategoryLimit: ((String, Double) -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -435,7 +438,7 @@ fun ReportDetailsDialog(
                         is ChatAuditRequestItem -> RenderAuditRequestItem(item)
                         is ChatAuditSystemItem -> RenderAuditSystemItem(item)
                         is ChatTypingItem -> RenderTypingItem(item)
-                        is ChatAuditBlockItem -> RenderAuditBlockItem(item)
+                        is ChatAuditBlockItem -> RenderAuditBlockItem(item, onApplyCategoryLimit)
                         is ChatAuditRetryItem -> RenderAuditRetryItem(
                             item = item,
                             onRequestAudit = {
@@ -456,7 +459,7 @@ fun ReportDetailsDialog(
                     .background(Slate800)
             )
 
-            // Footer (Telegram style input bar with attached file)
+            // Footer (Telegram style input bar with attached file & AI Insight Chips)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -465,6 +468,40 @@ fun ReportDetailsDialog(
                     .imePadding()
                     .padding(horizontal = 10.dp, vertical = 8.dp)
             ) {
+                // Quick AI Insight Suggestion Chips
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(bottom = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf(
+                        "📊 Анализ аномалий" to "Давид, покажи аномальный рост расходов за $periodTitle",
+                        "💡 Советы по экономии" to "Давид, дай персональные рекомендации как оптимизировать мои траты за $periodTitle",
+                        "🎯 Рекомендуемые лимиты" to "Давид, предложи оптимальные лимиты бюджета для моих категорий трат",
+                        "📈 Сравнить с прошлым периодом" to "Давид, сравни мои расходы за $periodTitle с прошлым периодом"
+                    ).forEach { (chipLabel, chipPrompt) ->
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = Slate800,
+                            border = BorderStroke(1.dp, Indigo500.copy(alpha = 0.4f)),
+                            modifier = Modifier.clickable {
+                                userMessageText = chipPrompt
+                                isFileAttached = true
+                            }
+                        ) {
+                            Text(
+                                text = chipLabel,
+                                color = Slate200,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                            )
+                        }
+                    }
+                }
+
                 AnimatedVisibility(visible = isFileAttached) {
                     Row(
                         modifier = Modifier
@@ -945,14 +982,41 @@ private fun RenderTypingItem(item: ChatTypingItem) {
     }
 }
 
+data class ParsedActionLimit(
+    val category: String,
+    val amount: Double
+)
+
+fun parseActionLimitsFromText(text: String): List<ParsedActionLimit> {
+    val regex = Regex("""\[ACTION:LIMIT\|([^|]+)\|(\d+(?:\.\d+)?)\]""", RegexOption.IGNORE_CASE)
+    val matches = regex.findAll(text)
+    return matches.mapNotNull { m ->
+        val cat = m.groupValues[1].trim()
+        val amt = m.groupValues[2].toDoubleOrNull()
+        if (cat.isNotEmpty() && amt != null) ParsedActionLimit(cat, amt) else null
+    }.toList()
+}
+
+fun cleanChartTagsFromText(text: String): String {
+    val cleanChart = text.replace(Regex("""\|\|chart:(.*?)\|\|""", RegexOption.DOT_MATCHES_ALL), "")
+    val cleanLimits = cleanChart.replace(Regex("""\[ACTION:LIMIT\|.*?\]""", RegexOption.IGNORE_CASE), "")
+    return cleanLimits.trim()
+}
+
 @Composable
-private fun RenderAuditBlockItem(item: ChatAuditBlockItem) {
+private fun RenderAuditBlockItem(
+    item: ChatAuditBlockItem,
+    onApplyCategoryLimit: ((String, Double) -> Unit)? = null
+) {
     if (item.text.isNotBlank()) {
         val timeStr = remember(item.timestamp) {
             SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(item.timestamp))
         }
         val chartData = remember(item.text) {
             parseChartDataFromText(item.text)
+        }
+        val actionLimits = remember(item.text) {
+            parseActionLimitsFromText(item.text)
         }
         val cleanText = remember(item.text) {
             cleanChartTagsFromText(item.text)
@@ -1003,6 +1067,59 @@ private fun RenderAuditBlockItem(item: ChatAuditBlockItem) {
                                 title = chartData.title,
                                 totalAmount = chartData.total
                             )
+                        }
+
+                        if (actionLimits.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            actionLimits.forEach { action ->
+                                var applied by remember { mutableStateOf(false) }
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Slate900,
+                                    border = BorderStroke(1.dp, if (applied) Emerald400 else Indigo500.copy(alpha = 0.6f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = "🎯 ИИ предлагает установить лимит",
+                                                color = Indigo400,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = "${action.category}: ${String.format(Locale.getDefault(), "%,.0f", action.amount)} ₽",
+                                                color = Color.White,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Button(
+                                            onClick = {
+                                                onApplyCategoryLimit?.invoke(action.category, action.amount)
+                                                applied = true
+                                            },
+                                            enabled = !applied,
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = if (applied) Emerald400.copy(alpha = 0.2f) else Indigo500,
+                                                contentColor = if (applied) Emerald400 else Color.White
+                                            ),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                        ) {
+                                            Text(if (applied) "✓ Установлен" else "Применить", fontSize = 12.sp)
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(4.dp))
@@ -1074,10 +1191,6 @@ fun parseChartDataFromText(text: String): ParsedChartMessageData? {
     }
 
     return null
-}
-
-fun cleanChartTagsFromText(text: String): String {
-    return text.replace(Regex("""\|\|chart:(.*?)\|\|""", RegexOption.DOT_MATCHES_ALL), "").trim()
 }
 
 @Composable

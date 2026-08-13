@@ -1043,6 +1043,9 @@ fun MainAppScreen(viewModel: BudgetViewModel) {
                         appPrefs.edit().putBoolean("has_opened_david_chat_before_$profileKey", true).apply()
                         viewModel.markNotificationsAsRead()
                     },
+                    onApplyCategoryLimit = { category, limit ->
+                        viewModel.updateCategoryLimit(category, "expense", limit)
+                    },
                     onDismiss = {
                         showReportDialog = false
                         appPrefs.edit().putBoolean("has_opened_david_chat_before_$profileKey", true).apply()
