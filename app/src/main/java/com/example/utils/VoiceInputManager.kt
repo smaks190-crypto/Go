@@ -239,9 +239,38 @@ class VoiceInputManager(private val context: Context) {
                     )
                 )
 
-                val modelName = "gemini-1.5-flash"
-                val response = com.example.data.api.RetrofitClient.service.generateContent(modelName, apiKey, request)
-                val text = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text?.trim() ?: ""
+                val modelsToTry = listOf(
+                    "gemini-3.5-flash-lite",
+                    "gemini-3.1-flash-lite"
+                )
+
+                var text = ""
+                var lastErrorMsg: String? = null
+
+                for (model in modelsToTry) {
+                    try {
+                        GlobalConsoleLogger.d("VOICE", "[$modelEngine] Отправка запроса к модели $model...")
+                        val response = com.example.data.api.RetrofitClient.service.generateContent(model, apiKey, request)
+                        if (response.error == null) {
+                            val candidateText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text?.trim()
+                            if (!candidateText.isNullOrEmpty()) {
+                                text = candidateText
+                                GlobalConsoleLogger.i("VOICE", "[$modelEngine] Успешно распознано через $model: «$text»")
+                                break
+                            }
+                        } else {
+                            lastErrorMsg = response.error.message
+                            GlobalConsoleLogger.w("VOICE", "[$modelEngine] Модель $model вернула ошибку: ${response.error.message}")
+                        }
+                    } catch (e: Exception) {
+                        lastErrorMsg = e.localizedMessage
+                        GlobalConsoleLogger.w("VOICE", "[$modelEngine] Исключение при обращении к $model: ${e.localizedMessage}")
+                    }
+                }
+
+                if (text.isBlank() && lastErrorMsg != null) {
+                    GlobalConsoleLogger.e("VOICE", "[$modelEngine] Ни одна из моделей Gemini не вернула результат: $lastErrorMsg")
+                }
 
                 withContext(Dispatchers.Main) {
                     _voskStatus.value = "READY"
