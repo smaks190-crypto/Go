@@ -6,22 +6,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val BudgetDarkColorScheme = darkColorScheme(
-    primary = Emerald400,
-    onPrimary = DarkBg,
-    primaryContainer = Indigo500,
-    onPrimaryContainer = Color.White,
-    secondary = Indigo500,
-    onSecondary = Color.White,
+    primary = NeonGreen,
+    onPrimary = DarkBackground,
+    primaryContainer = NeonIndigo,
+    onPrimaryContainer = TextPrimary,
+    secondary = NeonIndigo,
+    onSecondary = TextPrimary,
     tertiary = Sky400,
-    background = DarkBg,
-    onBackground = Slate100,
-    surface = Slate900,
-    onSurface = Slate100,
-    surfaceVariant = Slate800,
-    onSurfaceVariant = Slate300,
-    outline = Slate700,
-    error = Rose500,
-    onError = Color.White
+    background = DarkBackground,
+    onBackground = TextPrimary,
+    surface = DarkSurface,
+    onSurface = TextPrimary,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = TextSecondary,
+    outline = DarkBorder,
+    error = NeonRose,
+    onError = TextPrimary
 )
 
 @Composable

@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.ui.draw.rotate
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,6 +46,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.data.db.CategoryEntity
 import com.example.data.db.TransactionEntity
+import com.example.ui.components.NeonButton
+import com.example.ui.components.NeonCard
+import com.example.ui.components.NeonOutlinedButton
 import com.example.ui.components.SwipeToDismissDialog
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.PeriodType
@@ -87,9 +91,9 @@ fun CategoryLimitsDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding(),
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            color = DarkSlate,
-            border = androidx.compose.foundation.BorderStroke(1.dp, Slate800)
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+            color = DarkSurface,
+            border = BorderStroke(1.dp, DarkBorder)
         ) {
             Column(
                 modifier = Modifier
@@ -103,7 +107,7 @@ fun CategoryLimitsDialog(
                         .width(40.dp)
                         .height(4.dp)
                         .clip(CircleShape)
-                        .background(Slate500.copy(alpha = 0.6f))
+                        .background(TextMuted)
                 )
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -122,28 +126,28 @@ fun CategoryLimitsDialog(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Indigo500.copy(alpha = 0.15f))
-                                .border(1.dp, Indigo500.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
+                                .background(NeonIndigo.copy(alpha = 0.15f))
+                                .border(1.dp, NeonIndigo.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.PieChart,
                                 contentDescription = null,
-                                tint = Indigo500,
+                                tint = NeonIndigo,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
                         Column {
                             Text(
                                 text = "КАТЕГОРИИ И ЛИМИТЫ",
-                                color = Slate400,
+                                color = TextSecondary,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 letterSpacing = 1.sp
                             )
                             Text(
                                 text = "Траты: ${formatLimitCurrency(totalSpent)}",
-                                color = Slate100,
+                                color = TextPrimary,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -154,12 +158,12 @@ fun CategoryLimitsDialog(
                         onClick = onDismiss,
                         modifier = Modifier
                             .size(32.dp)
-                            .background(Slate800.copy(alpha = 0.6f), CircleShape)
+                            .background(DarkSurfaceVariant, CircleShape)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Закрыть",
-                            tint = Slate400,
+                            tint = TextSecondary,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -169,21 +173,18 @@ fun CategoryLimitsDialog(
 
                 // Inline editor if editing category limit
                 editingCategory?.let { cat ->
-                    Card(
+                    NeonCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 14.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = DarkBg),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Indigo500)
+                        borderColor = NeonIndigo
                     ) {
                         Column(
-                            modifier = Modifier.padding(14.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Text(
                                 text = "ЛИМИТ ДЛЯ: ${cat.name.uppercase(Locale.getDefault())}",
-                                color = Indigo500,
+                                color = NeonIndigo,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -191,16 +192,16 @@ fun CategoryLimitsDialog(
                             OutlinedTextField(
                                 value = limitInputText,
                                 onValueChange = { limitInputText = it.replace(',', '.') },
-                                label = { Text("Лимит трат (₽)") },
+                                label = { Text("Лимит трат (₽)", color = TextSecondary) },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedContainerColor = Slate900,
-                                    unfocusedContainerColor = Slate900,
-                                    focusedBorderColor = Indigo500,
-                                    unfocusedBorderColor = Slate800,
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White
+                                    focusedContainerColor = DarkBackground,
+                                    unfocusedContainerColor = DarkBackground,
+                                    focusedBorderColor = NeonIndigo,
+                                    unfocusedBorderColor = DarkBorder,
+                                    focusedTextColor = TextPrimary,
+                                    unfocusedTextColor = TextPrimary
                                 ),
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.fillMaxWidth()
@@ -208,7 +209,8 @@ fun CategoryLimitsDialog(
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 TextButton(
                                     onClick = {
@@ -216,30 +218,25 @@ fun CategoryLimitsDialog(
                                         editingCategory = null
                                     }
                                 ) {
-                                    Text("Сбросить", color = Rose500, fontSize = 12.sp)
+                                    Text("Сбросить", color = NeonRose, fontSize = 12.sp)
                                 }
 
                                 Spacer(modifier = Modifier.weight(1f))
 
-                                OutlinedButton(
-                                    onClick = { editingCategory = null },
-                                    shape = RoundedCornerShape(10.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, Slate800)
-                                ) {
-                                    Text("Отмена", color = Slate400, fontSize = 12.sp)
-                                }
+                                NeonOutlinedButton(
+                                    text = "Отмена",
+                                    onClick = { editingCategory = null }
+                                )
 
-                                Button(
+                                NeonButton(
+                                    text = "Сохранить",
                                     onClick = {
                                         val valLimit = limitInputText.toDoubleOrNull()
                                         onUpdateLimit(cat.name, valLimit)
                                         editingCategory = null
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Indigo500),
-                                    shape = RoundedCornerShape(10.dp)
-                                ) {
-                                    Text("Сохранить", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                }
+                                    containerColor = NeonIndigo
+                                )
                             }
                         }
                     }
@@ -292,9 +289,9 @@ private fun CategoryLimitItemCard(
     val progress = if (limit != null && limit > 0) (spent / limit).coerceIn(0.0, 1.0).toFloat() else 0f
 
     val categoryColor = when {
-        isOverLimit -> Rose500
-        progress > 0.8f -> Indigo500
-        else -> Emerald400
+        isOverLimit -> NeonRose
+        progress > 0.8f -> NeonIndigo
+        else -> NeonGreen
     }
 
     val animatedProgress by animateFloatAsState(targetValue = progress, label = "progress")
@@ -307,10 +304,10 @@ private fun CategoryLimitItemCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Slate900),
-        border = androidx.compose.foundation.BorderStroke(
+        colors = CardDefaults.cardColors(containerColor = DarkSurface),
+        border = BorderStroke(
             1.dp,
-            if (isOverLimit) Rose500.copy(alpha = 0.5f) else Slate800
+            if (isOverLimit) NeonRose.copy(alpha = 0.5f) else DarkBorder
         )
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -330,7 +327,7 @@ private fun CategoryLimitItemCard(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(categoryColor.copy(alpha = 0.15f))
+                            .background(DarkSurfaceVariant)
                             .border(1.dp, categoryColor.copy(alpha = 0.35f), RoundedCornerShape(10.dp)),
                         contentAlignment = Alignment.Center
                     ) {
@@ -345,7 +342,7 @@ private fun CategoryLimitItemCard(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = categoryName,
-                                color = Slate100,
+                                color = TextPrimary,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -354,7 +351,7 @@ private fun CategoryLimitItemCard(
                                 Icon(
                                     imageVector = Icons.Default.Warning,
                                     contentDescription = "Превышение",
-                                    tint = Rose500,
+                                    tint = NeonRose,
                                     modifier = Modifier.size(14.dp)
                                 )
                             }
@@ -365,7 +362,7 @@ private fun CategoryLimitItemCard(
                             } else {
                                 "Лимит не задан"
                             },
-                            color = if (isOverLimit) Rose500 else Slate400,
+                            color = if (isOverLimit) NeonRose else TextSecondary,
                             fontSize = 11.sp
                         )
                     }
@@ -377,7 +374,7 @@ private fun CategoryLimitItemCard(
                 ) {
                     Text(
                         text = formatLimitCurrency(spent),
-                        color = if (isOverLimit) Rose500 else Emerald400,
+                        color = if (isOverLimit) NeonRose else NeonGreen,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -386,12 +383,12 @@ private fun CategoryLimitItemCard(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Slate800.copy(alpha = 0.6f))
+                            .background(DarkSurfaceVariant)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Задать лимит",
-                            tint = Slate300,
+                            tint = TextSecondary,
                             modifier = Modifier.size(14.dp)
                         )
                     }
@@ -402,7 +399,7 @@ private fun CategoryLimitItemCard(
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
                             contentDescription = "Развернуть",
-                            tint = Indigo500,
+                            tint = NeonIndigo,
                             modifier = Modifier
                                 .size(18.dp)
                                 .rotate(rotationState)
@@ -418,7 +415,7 @@ private fun CategoryLimitItemCard(
                         .fillMaxWidth()
                         .height(6.dp)
                         .clip(RoundedCornerShape(3.dp))
-                        .background(Slate950)
+                        .background(DarkBackground)
                 ) {
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         val barWidth = size.width * animatedProgress
@@ -431,7 +428,7 @@ private fun CategoryLimitItemCard(
                         )
                         drawRoundRect(
                             brush = Brush.horizontalGradient(
-                                colors = listOf(Emerald400, categoryColor)
+                                colors = listOf(NeonGreen, categoryColor)
                             ),
                             size = Size(barWidth, size.height),
                             cornerRadius = CornerRadius(corner, corner)
@@ -458,21 +455,21 @@ private fun CategoryLimitItemCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp)
-                        .background(Slate950.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                        .border(1.dp, Slate800, RoundedCornerShape(12.dp))
+                        .background(DarkBackground, RoundedCornerShape(12.dp))
+                        .border(1.dp, DarkBorder, RoundedCornerShape(12.dp))
                         .padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
                         text = "Операции (${transactions.size})",
-                        color = Slate400,
+                        color = TextSecondary,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
                     if (transactions.isEmpty()) {
                         Text(
                             text = "Нет операций в выбранном периоде",
-                            color = Slate500,
+                            color = TextMuted,
                             fontSize = 11.sp
                         )
                     } else {
@@ -484,7 +481,7 @@ private fun CategoryLimitItemCard(
                             ) {
                                 Text(
                                     text = tx.subcategory.ifBlank { tx.category },
-                                    color = Slate200,
+                                    color = TextPrimary,
                                     fontSize = 11.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -492,7 +489,7 @@ private fun CategoryLimitItemCard(
                                 )
                                 Text(
                                     text = formatLimitCurrency(tx.amount),
-                                    color = Rose500,
+                                    color = NeonRose,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -520,10 +517,10 @@ fun SetCategoryLimitDialog(
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .wrapContentHeight()
-                .shadow(elevation = 20.dp, shape = RoundedCornerShape(24.dp)),
-            shape = RoundedCornerShape(24.dp),
-            color = Slate900,
-            border = androidx.compose.foundation.BorderStroke(1.dp, Slate800)
+                .shadow(elevation = 20.dp, shape = RoundedCornerShape(16.dp)),
+            shape = RoundedCornerShape(16.dp),
+            color = DarkSurface,
+            border = BorderStroke(1.dp, DarkBorder)
         ) {
             Column(
                 modifier = Modifier
@@ -533,7 +530,7 @@ fun SetCategoryLimitDialog(
             ) {
                 Text(
                     text = "ЛИМИТ: ${categoryName.uppercase(Locale.getDefault())}",
-                    color = Indigo500,
+                    color = NeonIndigo,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
@@ -542,16 +539,16 @@ fun SetCategoryLimitDialog(
                 OutlinedTextField(
                     value = limitInput,
                     onValueChange = { limitInput = it.replace(',', '.') },
-                    label = { Text("Сумма лимита (₽)") },
+                    label = { Text("Сумма лимита (₽)", color = TextSecondary) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = DarkBg,
-                        unfocusedContainerColor = DarkBg,
-                        focusedBorderColor = Indigo500,
-                        unfocusedBorderColor = Slate800,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedContainerColor = DarkBackground,
+                        unfocusedContainerColor = DarkBackground,
+                        focusedBorderColor = NeonIndigo,
+                        unfocusedBorderColor = DarkBorder,
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary
                     ),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -559,7 +556,8 @@ fun SetCategoryLimitDialog(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (currentLimit != null) {
                         TextButton(
@@ -568,35 +566,30 @@ fun SetCategoryLimitDialog(
                                 onDismiss()
                             }
                         ) {
-                            Text("Удалить лимит", color = Rose500, fontSize = 12.sp)
+                            Text("Удалить лимит", color = NeonRose, fontSize = 12.sp)
                         }
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        shape = RoundedCornerShape(10.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Slate800)
-                    ) {
-                        Text("Отмена", color = Slate400, fontSize = 12.sp)
-                    }
+                    NeonOutlinedButton(
+                        text = "Отмена",
+                        onClick = onDismiss
+                    )
 
-                    Button(
+                    NeonButton(
+                        text = "Сохранить",
                         onClick = {
                             val newLim = limitInput.toDoubleOrNull()
                             if (newLim != null && newLim <= 0) {
                                 Toast.makeText(context, "Укажите значение > 0", Toast.LENGTH_SHORT).show()
-                                return@Button
+                                return@NeonButton
                             }
                             onSaveLimit(newLim)
                             onDismiss()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Indigo500),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text("Сохранить", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
+                        containerColor = NeonIndigo
+                    )
                 }
             }
         }
@@ -614,9 +607,9 @@ fun BudgetPeriodDialog(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(24.dp),
-            color = Slate900,
-            border = androidx.compose.foundation.BorderStroke(1.dp, Slate800)
+            shape = RoundedCornerShape(16.dp),
+            color = DarkSurface,
+            border = BorderStroke(1.dp, DarkBorder)
         ) {
             Column(
                 modifier = Modifier
@@ -626,7 +619,7 @@ fun BudgetPeriodDialog(
             ) {
                 Text(
                     text = "БЮДЖЕТНЫЙ ПЕРИОД",
-                    color = Indigo500,
+                    color = NeonIndigo,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
@@ -649,11 +642,11 @@ fun BudgetPeriodDialog(
                             },
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) Indigo500.copy(alpha = 0.15f) else DarkBg
+                            containerColor = if (isSelected) NeonIndigo.copy(alpha = 0.15f) else DarkBackground
                         ),
-                        border = androidx.compose.foundation.BorderStroke(
+                        border = BorderStroke(
                             1.dp,
-                            if (isSelected) Indigo500 else Slate800
+                            if (isSelected) NeonIndigo else DarkBorder
                         )
                     ) {
                         Row(
@@ -665,7 +658,7 @@ fun BudgetPeriodDialog(
                         ) {
                             Text(
                                 text = title,
-                                color = if (isSelected) Indigo500 else Color.White,
+                                color = if (isSelected) NeonIndigo else TextPrimary,
                                 fontSize = 14.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                             )
@@ -674,7 +667,7 @@ fun BudgetPeriodDialog(
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
-                                    tint = Indigo500,
+                                    tint = NeonIndigo,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }

@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,11 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.formatFullCurrency
-import com.example.ui.theme.Emerald400
-import com.example.ui.theme.Indigo500
-import com.example.ui.theme.Rose500
-import com.example.ui.theme.Slate400
-import com.example.ui.theme.Slate900
+import com.example.ui.theme.*
 
 @Composable
 fun MainBalanceCard(
@@ -51,25 +48,25 @@ fun MainBalanceCard(
     onExpensesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(Slate900)
-            .border(
-                width = 1.dp,
-                brush = Brush.linearGradient(
-                    listOf(
-                        Emerald400.copy(alpha = 0.4f),
-                        Indigo500.copy(alpha = 0.4f),
-                        Rose500.copy(alpha = 0.4f)
-                    )
-                ),
-                shape = RoundedCornerShape(24.dp)
+            .shadow(elevation = 12.dp, shape = RoundedCornerShape(20.dp), ambientColor = NeonIndigo, spotColor = NeonIndigo)
+            .clip(RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp),
+        color = DarkSurface,
+        border = BorderStroke(
+            width = 1.dp,
+            brush = Brush.linearGradient(
+                listOf(
+                    NeonGreen.copy(alpha = 0.5f),
+                    NeonIndigo.copy(alpha = 0.5f),
+                    NeonRose.copy(alpha = 0.5f)
+                )
             )
-            .padding(20.dp)
+        )
     ) {
-        Column {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -77,16 +74,16 @@ fun MainBalanceCard(
             ) {
                 Text(
                     text = "ТЕКУЩИЙ БАЛАНС",
-                    color = Slate400,
-                    fontSize = 10.sp,
+                    color = TextSecondary,
+                    fontSize = 11.sp,
                     letterSpacing = 1.sp,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 )
 
                 Surface(
                     shape = CircleShape,
-                    color = Emerald400.copy(alpha = 0.1f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Emerald400.copy(alpha = 0.3f))
+                    color = NeonGreen.copy(alpha = 0.12f),
+                    border = BorderStroke(1.dp, NeonGreen.copy(alpha = 0.35f))
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
@@ -96,24 +93,24 @@ fun MainBalanceCard(
                         Icon(
                             Icons.Default.TrendingUp,
                             contentDescription = null,
-                            tint = Emerald400,
+                            tint = NeonGreen,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = "Норма ${monthSavingsRate}%",
-                            color = Emerald400,
+                            color = NeonGreen,
                             fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = formatFullCurrency(monthTotalAccumulatedBalance),
-                color = Color.White,
+                color = TextPrimary,
                 fontSize = 28.sp,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.ExtraBold
@@ -128,40 +125,40 @@ fun MainBalanceCard(
                 Row(
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(14.dp))
                         .clickable { onIncomesClick() }
-                        .background(Emerald400.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-                        .border(1.dp, Emerald400.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
+                        .background(NeonGreen.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
+                        .border(1.dp, NeonGreen.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
                         .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(38.dp)
                             .shadow(
-                                elevation = 12.dp,
+                                elevation = 8.dp,
                                 shape = CircleShape,
-                                ambientColor = Emerald400,
-                                spotColor = Emerald400
+                                ambientColor = NeonGreen,
+                                spotColor = NeonGreen
                             )
                             .clip(CircleShape)
-                            .background(Emerald400.copy(alpha = 0.12f))
-                            .border(1.dp, Emerald400.copy(alpha = 0.4f), CircleShape),
+                            .background(NeonGreen.copy(alpha = 0.15f))
+                            .border(1.dp, NeonGreen.copy(alpha = 0.5f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.SouthWest,
                             contentDescription = null,
-                            tint = Emerald400,
-                            modifier = Modifier.size(20.dp)
+                            tint = NeonGreen,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
-                        Text(text = "Доходы", color = Slate400, fontSize = 11.sp)
+                        Text(text = "Доходы", color = TextSecondary, fontSize = 11.sp)
                         Text(
                             text = "+\u00A0${formatFullCurrency(monthTotalIncome)}",
-                            color = Emerald400,
+                            color = NeonGreen,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace,
@@ -175,40 +172,40 @@ fun MainBalanceCard(
                 Row(
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(14.dp))
                         .clickable { onExpensesClick() }
-                        .background(Rose500.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-                        .border(1.dp, Rose500.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
+                        .background(NeonRose.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
+                        .border(1.dp, NeonRose.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
                         .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(38.dp)
                             .shadow(
-                                elevation = 12.dp,
+                                elevation = 8.dp,
                                 shape = CircleShape,
-                                ambientColor = Rose500,
-                                spotColor = Rose500
+                                ambientColor = NeonRose,
+                                spotColor = NeonRose
                             )
                             .clip(CircleShape)
-                            .background(Rose500.copy(alpha = 0.12f))
-                            .border(1.dp, Rose500.copy(alpha = 0.4f), CircleShape),
+                            .background(NeonRose.copy(alpha = 0.15f))
+                            .border(1.dp, NeonRose.copy(alpha = 0.5f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.NorthEast,
                             contentDescription = null,
-                            tint = Rose500,
-                            modifier = Modifier.size(20.dp)
+                            tint = NeonRose,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
-                        Text(text = "Расходы", color = Slate400, fontSize = 11.sp)
+                        Text(text = "Расходы", color = TextSecondary, fontSize = 11.sp)
                         Text(
                             text = "-\u00A0${formatFullCurrency(monthTotalExpense)}",
-                            color = Rose500,
+                            color = NeonRose,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace,
@@ -222,3 +219,4 @@ fun MainBalanceCard(
         }
     }
 }
+
