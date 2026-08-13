@@ -182,7 +182,7 @@ fun SettingsHubDialog(
     apiKey: String,
     currentProfileName: String,
     profileId: String = "default",
-    selectedSpeechEngine: com.example.utils.SpeechEngineType = com.example.utils.SpeechEngineType.SHERPA_ONNX,
+    selectedSpeechEngine: com.example.utils.SpeechEngineType = com.example.utils.SpeechEngineType.GEMINI_LIVE,
     onSpeechEngineChange: ((com.example.utils.SpeechEngineType) -> Unit)? = null,
     onAvatarChanged: () -> Unit = {},
     onRenameProfile: (String) -> Unit,

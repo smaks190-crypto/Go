@@ -130,10 +130,10 @@ class BudgetViewModel(application: Application) : AndroidViewModel(application) 
 
     private val _speechEngineType = MutableStateFlow<com.example.utils.SpeechEngineType>(
         try {
-            val saved = prefs.getString("speech_engine_type", com.example.utils.SpeechEngineType.SHERPA_ONNX.name)
-            com.example.utils.SpeechEngineType.valueOf(saved ?: com.example.utils.SpeechEngineType.SHERPA_ONNX.name)
+            val saved = prefs.getString("speech_engine_type", com.example.utils.SpeechEngineType.GEMINI_LIVE.name)
+            com.example.utils.SpeechEngineType.valueOf(saved ?: com.example.utils.SpeechEngineType.GEMINI_LIVE.name)
         } catch (_: Exception) {
-            com.example.utils.SpeechEngineType.SHERPA_ONNX
+            com.example.utils.SpeechEngineType.GEMINI_LIVE
         }
     )
     val speechEngineType: StateFlow<com.example.utils.SpeechEngineType> = _speechEngineType.asStateFlow()

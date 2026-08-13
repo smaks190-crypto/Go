@@ -135,9 +135,6 @@ fun VoiceRecordingOverlay(
     val frequencies by voiceManager.frequencies.collectAsState()
     val amplitudes = if (isListening) frequencies else List(32) { 0.05f }
 
-    val voskStatus by voiceManager.voskStatus.collectAsState()
-    val voskProgress by voiceManager.voskProgress.collectAsState()
-
     val isAnalyzingVoice by viewModel.isAnalyzingVoice.collectAsState()
     val manualText by viewModel.manualText.collectAsState()
 
@@ -770,17 +767,9 @@ fun VoiceRecordingOverlay(
                                                             )
                                                             Spacer(modifier = Modifier.width(4.dp))
                                                         }
-                                                        val statusText = when (voskStatus) {
-                                                            "DOWNLOADING" -> {
-                                                                val pct = (voskProgress?.let { (it * 100).toInt() } ?: 0)
-                                                                "Скачивание офлайн-модели ($pct%)"
-                                                            }
-                                                            "EXTRACTING" -> "Настройка модели..."
-                                                            else -> "Слушаю (${voiceManager.currentEngineType.displayName})..."
-                                                        }
                                                         Text(
-                                                            text = statusText.uppercase(),
-                                                            color = if (voskStatus == "DOWNLOADING" || voskStatus == "EXTRACTING") Emerald400 else Rose500,
+                                                            text = "СЛУШАЮ (GEMINI LIVE API)...",
+                                                            color = Rose500,
                                                             fontSize = 10.sp,
                                                             fontWeight = FontWeight.Bold,
                                                             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,

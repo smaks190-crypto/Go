@@ -170,12 +170,6 @@ dependencies {
 
   // Автоматический парсинг Markdown для Jetpack Compose
   implementation("com.github.jeziellago:compose-markdown:0.5.0")
-  
-  // Локальное офлайн-распознавание речи VOSK
-  implementation("com.alphacephei:vosk-android:0.3.47")
-
-  // Sherpa-Onnx ONNX Runtime engine
-  implementation("com.microsoft.onnxruntime:onnxruntime-android:1.18.0")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {

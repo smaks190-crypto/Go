@@ -87,7 +87,7 @@ fun GlobalConsoleOverlay(
     var selectedTagFilter by remember { mutableStateOf("ВСЕ") }
     var autoScrollEnabled by remember { mutableStateOf(true) }
 
-    val tags = listOf("ВСЕ", "UI", "STATE", "ROOM", "NETWORK", "VOSK", "GEMINI", "ERROR")
+    val tags = listOf("ВСЕ", "UI", "STATE", "ROOM", "NETWORK", "VOICE", "GEMINI", "GEMINI_WS", "ERROR")
 
     val filteredLogs = remember(logs, selectedTagFilter) {
         if (selectedTagFilter == "ВСЕ") {
