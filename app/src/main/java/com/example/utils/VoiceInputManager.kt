@@ -179,7 +179,6 @@ class VoiceInputManager(private val context: Context) {
                 )
 
                 val modelsToTry = listOf(
-                    "gemini-3.1-flash-live-preview",
                     "gemini-3.5-flash-lite",
                     "gemini-3.1-flash-lite"
                 )

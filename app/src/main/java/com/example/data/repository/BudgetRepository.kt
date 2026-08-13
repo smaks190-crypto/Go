@@ -913,7 +913,7 @@ class BudgetRepository(
         val modelsToTry = listOf(
             "gemini-3.6-flash",
             "gemini-3.5-flash",
-            "gemini-3.1-flash-live-preview"
+            "gemini-3.5-flash-lite"
         )
 
         var success = false
@@ -1049,7 +1049,7 @@ class BudgetRepository(
         val modelsToTry = listOf(
             "gemini-3.6-flash",
             "gemini-3.5-flash",
-            "gemini-3.1-flash-live-preview"
+            "gemini-3.5-flash-lite"
         )
 
         for (model in modelsToTry) {

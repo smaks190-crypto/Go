@@ -64,19 +64,38 @@ class GeminiLiveWebSocketClient {
                 isConnected = true
                 GlobalConsoleLogger.i("GEMINI_WS", "WebSocket соединение успешно установлено!")
 
-                // 1. Отправляем начальный Setup кадр
+                // 1. Отправляем начальный Setup кадр с модальностью AUDIO
+                val prebuiltVoiceConfig = JSONObject().apply {
+                    put("voice_name", "Puck")
+                    put("voiceName", "Puck")
+                }
+                val voiceConfig = JSONObject().apply {
+                    put("prebuilt_voice_config", prebuiltVoiceConfig)
+                    put("prebuiltVoiceConfig", prebuiltVoiceConfig)
+                }
+                val speechConfig = JSONObject().apply {
+                    put("voice_config", voiceConfig)
+                    put("voiceConfig", voiceConfig)
+                }
+                val genConfig = JSONObject().apply {
+                    put("response_modalities", JSONArray().put("AUDIO"))
+                    put("responseModalities", JSONArray().put("AUDIO"))
+                    put("speech_config", speechConfig)
+                    put("speechConfig", speechConfig)
+                }
                 val setupMessage = JSONObject().apply {
                     put("setup", JSONObject().apply {
                         put("model", modelName)
-                        put("generationConfig", JSONObject().apply {
-                            put("responseModalities", JSONArray().put("TEXT"))
-                        })
+                        put("generation_config", genConfig)
+                        put("generationConfig", genConfig)
                         systemInstructionText?.let { sysPrompt ->
-                            put("systemInstruction", JSONObject().apply {
+                            val sysInst = JSONObject().apply {
                                 put("parts", JSONArray().put(JSONObject().apply {
                                     put("text", sysPrompt)
                                 }))
-                            })
+                            }
+                            put("system_instruction", sysInst)
+                            put("systemInstruction", sysInst)
                         }
                     })
                 }
@@ -95,11 +114,32 @@ class GeminiLiveWebSocketClient {
 
                     if (json.has("serverContent")) {
                         val serverContent = json.optJSONObject("serverContent")
-                        val modelTurn = serverContent?.optJSONObject("modelTurn")
-                        val parts = modelTurn?.optJSONArray("parts")
-                        if (parts != null && parts.length() > 0) {
-                            val firstPart = parts.optJSONObject(0)
-                            textContent = firstPart?.optString("text")
+                        if (serverContent != null) {
+                            // 1. Извлечение текста из modelTurn.parts
+                            val modelTurn = serverContent.optJSONObject("modelTurn")
+                            val parts = modelTurn?.optJSONArray("parts")
+                            if (parts != null && parts.length() > 0) {
+                                val sb = StringBuilder()
+                                for (i in 0 until parts.length()) {
+                                    val part = parts.optJSONObject(i)
+                                    val partText = part?.optString("text")
+                                    if (!partText.isNullOrEmpty()) {
+                                        sb.append(partText)
+                                    }
+                                }
+                                if (sb.isNotEmpty()) {
+                                    textContent = sb.toString()
+                                }
+                            }
+
+                            // 2. Извлечение текста из outputAudioTranscription
+                            if (textContent.isNullOrBlank()) {
+                                val audioTranscription = serverContent.optJSONObject("outputAudioTranscription")
+                                val transcriptText = audioTranscription?.optString("text")
+                                if (!transcriptText.isNullOrEmpty()) {
+                                    textContent = transcriptText
+                                }
+                            }
                         }
                     } else if (json.has("text")) {
                         textContent = json.optString("text")
