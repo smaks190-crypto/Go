@@ -28,7 +28,13 @@ data class GeminiContent(
 )
 
 data class GeminiPart(
-    val text: String
+    val text: String? = null,
+    val inlineData: GeminiInlineData? = null
+)
+
+data class GeminiInlineData(
+    val mimeType: String,
+    val data: String
 )
 
 data class GeminiResponse(
