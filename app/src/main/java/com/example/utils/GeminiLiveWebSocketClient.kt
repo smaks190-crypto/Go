@@ -1,5 +1,8 @@
 package com.example.utils
 
+import android.media.AudioAttributes
+import android.media.AudioFormat
+import android.media.AudioTrack
 import android.util.Base64
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +24,15 @@ import java.util.concurrent.TimeUnit
  * (Direct Audio Streaming over WebSocket)
  */
 class GeminiLiveWebSocketClient {
+
+    /**
+     * Флаг обхода воспроизведения аудио через AudioTrack.
+     * Если установлен в true (по умолчанию), PCM-аудиоданные от сервера не воспроизводятся динамиком,
+     * а WebSocket-поток остается полностью открытым для получения и обработки текстовой транскрипции.
+     */
+    var bypassAudioPlayback: Boolean = true
+
+    private var audioTrack: AudioTrack? = null
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
@@ -84,7 +96,7 @@ class GeminiLiveWebSocketClient {
                     put("speechConfig", speechConfig)
                 }
                 val setupMessage = JSONObject().apply {
-                    put("setup", JSONObject().apply {
+                    val setupObj = JSONObject().apply {
                         put("model", modelName)
                         put("generation_config", genConfig)
                         put("generationConfig", genConfig)
@@ -97,7 +109,8 @@ class GeminiLiveWebSocketClient {
                             put("system_instruction", sysInst)
                             put("systemInstruction", sysInst)
                         }
-                    })
+                    }
+                    put("setup", setupObj)
                 }
 
                 ws.send(setupMessage.toString())
@@ -115,7 +128,7 @@ class GeminiLiveWebSocketClient {
                     if (json.has("serverContent")) {
                         val serverContent = json.optJSONObject("serverContent")
                         if (serverContent != null) {
-                            // 1. Извлечение текста из modelTurn.parts
+                            // 1. Извлечение текста и обработка аудио из modelTurn.parts
                             val modelTurn = serverContent.optJSONObject("modelTurn")
                             val parts = modelTurn?.optJSONArray("parts")
                             if (parts != null && parts.length() > 0) {
@@ -125,6 +138,16 @@ class GeminiLiveWebSocketClient {
                                     val partText = part?.optString("text")
                                     if (!partText.isNullOrEmpty()) {
                                         sb.append(partText)
+                                    }
+
+                                    // Проверка наличия аудиоданных в part
+                                    val inlineData = part?.optJSONObject("inlineData")
+                                    if (inlineData != null) {
+                                        val mimeType = inlineData.optString("mimeType", "")
+                                        val audioBase64 = inlineData.optString("data", "")
+                                        if (audioBase64.isNotEmpty() && mimeType.startsWith("audio/")) {
+                                            playOrBypassAudio(audioBase64)
+                                        }
                                     }
                                 }
                                 if (sb.isNotEmpty()) {
@@ -138,6 +161,19 @@ class GeminiLiveWebSocketClient {
                                 val transcriptText = audioTranscription?.optString("text")
                                 if (!transcriptText.isNullOrEmpty()) {
                                     textContent = transcriptText
+                                }
+                            }
+
+                            // 3. Извлечение текста из userTurn (транскрипция входящей речи)
+                            if (textContent.isNullOrBlank()) {
+                                val userTurn = serverContent.optJSONObject("userTurn")
+                                val userParts = userTurn?.optJSONArray("parts")
+                                if (userParts != null && userParts.length() > 0) {
+                                    val firstPart = userParts.optJSONObject(0)
+                                    val uText = firstPart?.optString("text")
+                                    if (!uText.isNullOrEmpty()) {
+                                        textContent = uText
+                                    }
                                 }
                             }
                         }
@@ -223,10 +259,75 @@ class GeminiLiveWebSocketClient {
     }
 
     /**
+     * Воспроизведение PCM аудио или его обход (байпасс) в зависимости от флага bypassAudioPlayback
+     */
+    private fun playOrBypassAudio(base64Data: String) {
+        if (bypassAudioPlayback) {
+            GlobalConsoleLogger.d("GEMINI_WS", "Аудио-поток от сервера получен, но динамик отключен (bypassAudioPlayback = true). WebSocket сессия продолжается.")
+            return
+        }
+
+        try {
+            val audioBytes = Base64.decode(base64Data, Base64.DEFAULT)
+            if (audioBytes.isNotEmpty()) {
+                initAudioTrackIfNeeded()
+                audioTrack?.write(audioBytes, 0, audioBytes.size)
+            }
+        } catch (e: Exception) {
+            GlobalConsoleLogger.e("GEMINI_WS", "Ошибка воспроизведения аудиочанка: ${e.localizedMessage}")
+        }
+    }
+
+    private fun initAudioTrackIfNeeded() {
+        if (audioTrack == null) {
+            try {
+                val sampleRate = 24000 // Стандартная частота дискретизации ответа Gemini Live
+                val bufferSize = AudioTrack.getMinBufferSize(
+                    sampleRate,
+                    AudioFormat.CHANNEL_OUT_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT
+                )
+                audioTrack = AudioTrack.Builder()
+                    .setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                            .build()
+                    )
+                    .setAudioFormat(
+                        AudioFormat.Builder()
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .setSampleRate(sampleRate)
+                            .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                            .build()
+                    )
+                    .setBufferSizeInBytes(bufferSize.coerceAtLeast(4096))
+                    .setTransferMode(AudioTrack.MODE_STREAM)
+                    .build().apply {
+                        play()
+                    }
+            } catch (e: Exception) {
+                GlobalConsoleLogger.e("GEMINI_WS", "Ошибка инициализации AudioTrack: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    private fun stopAudioTrack() {
+        try {
+            audioTrack?.stop()
+            audioTrack?.release()
+            audioTrack = null
+        } catch (e: Exception) {
+            // Игнорируем ошибки при закрытии
+        }
+    }
+
+    /**
      * Закрытие WebSocket сессии
      */
     fun disconnect() {
         try {
+            stopAudioTrack()
             webSocket?.close(1000, "User stopped recording")
             webSocket = null
             isConnected = false

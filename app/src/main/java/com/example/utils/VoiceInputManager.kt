@@ -260,14 +260,19 @@ class VoiceInputManager(private val context: Context) {
 
         val apiKey = getSavedApiKey()
         if (apiKey.isNotBlank()) {
-            liveClient.connect(apiKey, "models/gemini-3.1-flash-live-preview")
+            val sttPrompt = "Ты — модуль распознавания финансовой речи. Твоя единственная задача — точнейше транскрибировать все слова пользователя о доходах и расходах (например: 'потратил 500 рублей на продукты', 'такси 300'). Выводи только текст распознанной речи без приветствий и сносок."
+            liveClient.connect(apiKey, "models/gemini-3.1-flash-live-preview", sttPrompt)
             
             CoroutineScope(Dispatchers.IO).launch {
                 liveClient.responseTextFlow.collect { text ->
                     withContext(Dispatchers.Main) {
-                        _recognizedText.value = text
-                        _partialText.value = text
-                        onChunkRecognized?.invoke(text)
+                        if (text.isNotBlank()) {
+                            accumulatedText = if (accumulatedText.isBlank()) text else "$accumulatedText $text"
+                            _recognizedText.value = accumulatedText
+                            _partialText.value = accumulatedText
+                            GlobalConsoleLogger.i("VOICE", "[Gemini Live] Распознано: «$text» (Итого: «$accumulatedText»)")
+                            onChunkRecognized?.invoke(accumulatedText)
+                        }
                     }
                 }
             }
@@ -275,6 +280,7 @@ class VoiceInputManager(private val context: Context) {
             CoroutineScope(Dispatchers.IO).launch {
                 liveClient.errorFlow.collect { err ->
                     withContext(Dispatchers.Main) {
+                        GlobalConsoleLogger.e("VOICE", "[Gemini Live] Ошибка WebSocket: $err")
                         _errorState.value = err
                         onErrorCallback?.invoke()
                     }

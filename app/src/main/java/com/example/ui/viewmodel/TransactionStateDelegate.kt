@@ -78,10 +78,12 @@ class TransactionStateDelegate(
                 )
 
                 if (result.isNotEmpty()) {
-                    val currentList = parsedVoiceOperations.value ?: emptyList()
-                    val updatedList = currentList + result
-                    parsedVoiceOperations.value = updatedList
-                    com.example.utils.GlobalConsoleLogger.i("UI", "Добавлены новые операции (${result.size} шт.). Всего: ${updatedList.size} шт.")
+                    val finalDate = selectedDateDay.value.ifBlank {
+                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                    }
+                    confirmVoiceOperations(result, finalDate)
+                    clearParsedVoiceOperations()
+                    com.example.utils.GlobalConsoleLogger.i("UI", "Автоматически записаны операции (${result.size} шт.) в БД из Gemini Live!")
                 } else {
                     com.example.utils.GlobalConsoleLogger.d("GEMINI", "В фрагменте «$trimmed» операции не найдены")
                 }
@@ -151,11 +153,11 @@ class TransactionStateDelegate(
                     voiceErrorMessage.value = "Не удалось распознать операции из текста. Укажите суммы и название, например: «Потратил 500 рублей на такси»"
                     parsedVoiceOperations.value = null
                 } else {
-                    parsedVoiceOperations.value = result
                     val finalDate = selectedDateDay.value.ifBlank {
                         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                     }
                     confirmVoiceOperations(result, finalDate)
+                    clearParsedVoiceOperations()
                 }
             } catch (e: Exception) {
                 voiceErrorMessage.value = "Ошибка при анализе: ${e.message}"
