@@ -46,6 +46,11 @@ import com.example.ui.theme.Rose500
 import com.example.ui.theme.Slate300
 import com.example.ui.theme.Slate800
 import com.example.ui.theme.Slate900
+import com.example.ui.theme.CyberCardBg
+import com.example.ui.theme.CyberBg
+import com.example.ui.theme.NeonGlassCard
+import com.example.ui.theme.NeonFinancialText
+import androidx.compose.ui.graphics.Brush
 
 @Composable
 fun CategoriesGrid(
@@ -154,14 +159,14 @@ fun CategoriesGrid(
                 val (color, icon) = colorAndIcon
                 val ratio = (amount / maxCategoryVal).toFloat().coerceIn(0.12f, 1f)
 
-                Card(
+                NeonGlassCard(
                     onClick = { onShowLimitsClick() },
-                    colors = CardDefaults.cardColors(containerColor = Slate900.copy(alpha = 0.6f)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Slate800.copy(alpha = 0.8f)),
                     shape = RoundedCornerShape(16.dp),
+                    borderColor = color.copy(alpha = 0.35f),
+                    backgroundColor = CyberCardBg,
                     modifier = Modifier
                         .weight(1f)
-                        .height(118.dp)
+                        .height(122.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -174,7 +179,7 @@ fun CategoriesGrid(
                                 .size(32.dp)
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(color.copy(alpha = 0.12f))
-                                .border(1.dp, color.copy(alpha = 0.35f), RoundedCornerShape(10.dp)),
+                                .border(1.dp, color.copy(alpha = 0.4f), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -188,21 +193,19 @@ fun CategoriesGrid(
                         Text(
                             text = name,
                             color = Slate300,
-                            fontSize = 10.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            lineHeight = 12.sp,
+                            lineHeight = 13.sp,
                             modifier = Modifier.height(26.dp)
                         )
 
-                        Text(
-                            text = formatFullCurrency(amount),
+                        NeonFinancialText(
+                            amountText = formatFullCurrency(amount),
                             color = Color.White,
                             fontSize = 11.sp,
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1
+                            fontWeight = FontWeight.Bold
                         )
 
                         Box(
@@ -210,14 +213,18 @@ fun CategoriesGrid(
                                 .fillMaxWidth()
                                 .height(4.dp)
                                 .clip(RoundedCornerShape(2.dp))
-                                .background(Color(0xFF020617))
+                                .background(CyberBg)
                         ) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth(fraction = ratio)
                                     .height(4.dp)
                                     .clip(RoundedCornerShape(2.dp))
-                                    .background(color)
+                                    .background(
+                                        Brush.horizontalGradient(
+                                            listOf(color.copy(alpha = 0.7f), color)
+                                        )
+                                    )
                             )
                         }
                     }
@@ -233,14 +240,14 @@ fun CategoriesGrid(
                 val (color, icon) = colorAndIcon
                 val ratio = (amount / maxCategoryVal).toFloat().coerceIn(0.12f, 1f)
 
-                Card(
+                NeonGlassCard(
                     onClick = { onShowLimitsClick() },
-                    colors = CardDefaults.cardColors(containerColor = Slate900.copy(alpha = 0.6f)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Slate800.copy(alpha = 0.8f)),
                     shape = RoundedCornerShape(16.dp),
+                    borderColor = color.copy(alpha = 0.35f),
+                    backgroundColor = CyberCardBg,
                     modifier = Modifier
                         .weight(1f)
-                        .height(118.dp)
+                        .height(122.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -253,7 +260,7 @@ fun CategoriesGrid(
                                 .size(32.dp)
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(color.copy(alpha = 0.12f))
-                                .border(1.dp, color.copy(alpha = 0.35f), RoundedCornerShape(10.dp)),
+                                .border(1.dp, color.copy(alpha = 0.4f), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -267,21 +274,19 @@ fun CategoriesGrid(
                         Text(
                             text = name,
                             color = Slate300,
-                            fontSize = 10.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            lineHeight = 12.sp,
+                            lineHeight = 13.sp,
                             modifier = Modifier.height(26.dp)
                         )
 
-                        Text(
-                            text = formatFullCurrency(amount),
+                        NeonFinancialText(
+                            amountText = formatFullCurrency(amount),
                             color = Color.White,
                             fontSize = 11.sp,
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1
+                            fontWeight = FontWeight.Bold
                         )
 
                         Box(
@@ -289,28 +294,33 @@ fun CategoriesGrid(
                                 .fillMaxWidth()
                                 .height(4.dp)
                                 .clip(RoundedCornerShape(2.dp))
-                                .background(Color(0xFF020617))
+                                .background(CyberBg)
                         ) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth(fraction = ratio)
                                     .height(4.dp)
                                     .clip(RoundedCornerShape(2.dp))
-                                    .background(color)
+                                    .background(
+                                        Brush.horizontalGradient(
+                                            listOf(color.copy(alpha = 0.7f), color)
+                                        )
+                                    )
                             )
                         }
                     }
                 }
             }
 
-            Card(
+            NeonGlassCard(
                 onClick = { onShowLimitsClick() },
-                colors = CardDefaults.cardColors(containerColor = Indigo500.copy(alpha = 0.08f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Indigo500.copy(alpha = 0.35f)),
                 shape = RoundedCornerShape(16.dp),
+                borderColor = Indigo500.copy(alpha = 0.4f),
+                backgroundColor = CyberCardBg,
+                glowColor = Indigo500.copy(alpha = 0.2f),
                 modifier = Modifier
                     .weight(1f)
-                    .height(118.dp)
+                    .height(122.dp)
             ) {
                 Column(
                     modifier = Modifier

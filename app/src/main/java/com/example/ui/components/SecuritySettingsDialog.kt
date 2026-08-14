@@ -69,6 +69,9 @@ import com.example.ui.theme.DarkBg
 
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
+import androidx.compose.material.icons.filled.Fingerprint
+import com.example.ui.security.BiometricPromptHelper
+
 enum class SecurityDialogState {
     OVERVIEW,
     CREATE_PIN,
@@ -130,7 +133,8 @@ fun SecuritySettingsContent(
 
     var isPinEnabled by remember { mutableStateOf(securityManager.isPinEnabled()) }
     var isBiometricEnabled by remember { mutableStateOf(securityManager.isBiometricEnabled()) }
-    val isBiometricHardwareAvailable = remember { securityManager.isBiometricHardwareAvailable(context) }
+    val biometricStatus = remember { securityManager.getBiometricStatus(context) }
+    val isBiometricAvailable = biometricStatus == BiometricPromptHelper.BiometricStatus.AVAILABLE
 
     var pinInput1 by remember { mutableStateOf("") }
     var pinInput2 by remember { mutableStateOf("") }
@@ -172,199 +176,233 @@ fun SecuritySettingsContent(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "ПИН-код и отпечаток пальца",
+                    text = "ПИН-код и биометрия (androidx.biometric)",
                     color = Slate400,
                     fontSize = 11.sp
                 )
             }
         }
 
-                Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-                when (dialogState) {
-                    SecurityDialogState.OVERVIEW -> {
-                        // Toggle PIN
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = DarkBg,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
-                            modifier = Modifier.fillMaxWidth()
+        when (dialogState) {
+            SecurityDialogState.OVERVIEW -> {
+                // Toggle PIN
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = DarkBg,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Lock,
-                                        contentDescription = "ПИН-код",
-                                        tint = if (isPinEnabled) Emerald400 else Slate400,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column {
-                                        Text(
-                                            text = "Защита ПИН-кодом",
-                                            color = Color.White,
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                        Text(
-                                            text = if (isPinEnabled) "ПИН-код установлен" else "Требовать ПИН при входе",
-                                            color = Slate400,
-                                            fontSize = 12.sp
-                                        )
-                                    }
-                                }
-
-                                Switch(
-                                    checked = isPinEnabled,
-                                    onCheckedChange = { checked ->
-                                        if (checked) {
-                                            pinInput1 = ""
-                                            pinInput2 = ""
-                                            errorMessage = null
-                                            dialogState = SecurityDialogState.CREATE_PIN
-                                        } else {
-                                            securityManager.removePin()
-                                            isPinEnabled = false
-                                            isBiometricEnabled = false
-                                            onSecurityUpdated()
-                                            Toast.makeText(context, "Защита отключена", Toast.LENGTH_SHORT).show()
-                                        }
-                                    },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = Emerald400,
-                                        uncheckedThumbColor = Slate400,
-                                        uncheckedTrackColor = Slate800
-                                    ),
-                                    modifier = Modifier.testTag("toggle_pin_switch")
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = "ПИН-код",
+                                tint = if (isPinEnabled) Emerald400 else Slate400,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "Защита ПИН-кодом",
+                                    color = Color.White,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = if (isPinEnabled) "ПИН-код установлен" else "Требовать ПИН при входе",
+                                    color = Slate400,
+                                    fontSize = 12.sp
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Toggle Biometrics
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = DarkBg,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Face,
-                                        contentDescription = "Биометрия",
-                                        tint = if (isBiometricEnabled) Indigo500 else Slate400,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column {
-                                        Text(
-                                            text = "Отпечаток / Face ID",
-                                            color = Color.White,
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                        Text(
-                                            text = if (!isBiometricHardwareAvailable) "Биометрия недоступна на устройстве"
-                                            else if (!isPinEnabled) "Сначала включите ПИН-код"
-                                            else "Быстрый вход по биометрии",
-                                            color = Slate400,
-                                            fontSize = 12.sp
-                                        )
-                                    }
-                                }
-
-                                Switch(
-                                    checked = isBiometricEnabled,
-                                    enabled = isPinEnabled && isBiometricHardwareAvailable,
-                                    onCheckedChange = { checked ->
-                                        securityManager.setBiometricEnabled(checked)
-                                        isBiometricEnabled = checked
-                                        onSecurityUpdated()
-                                        Toast.makeText(
-                                            context,
-                                            if (checked) "Вход по отпечатку включен" else "Вход по отпечатку отключен",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = Indigo500,
-                                        uncheckedThumbColor = Slate400,
-                                        uncheckedTrackColor = Slate800
-                                    ),
-                                    modifier = Modifier.testTag("toggle_biometric_switch")
-                                )
-                            }
-                        }
-
-                        if (isPinEnabled) {
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            OutlinedButton(
-                                onClick = {
-                                    oldPinInput = ""
+                        Switch(
+                            checked = isPinEnabled,
+                            onCheckedChange = { checked ->
+                                if (checked) {
                                     pinInput1 = ""
                                     pinInput2 = ""
                                     errorMessage = null
-                                    dialogState = SecurityDialogState.CHANGE_PIN_OLD
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .testTag("change_pin_button"),
-                                shape = RoundedCornerShape(12.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Indigo500.copy(alpha = 0.5f))
+                                    dialogState = SecurityDialogState.CREATE_PIN
+                                } else {
+                                    securityManager.removePin()
+                                    isPinEnabled = false
+                                    isBiometricEnabled = false
+                                    onSecurityUpdated()
+                                    Toast.makeText(context, "Защита отключена", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = Emerald400,
+                                uncheckedThumbColor = Slate400,
+                                uncheckedTrackColor = Slate800
+                            ),
+                            modifier = Modifier.testTag("toggle_pin_switch")
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Toggle Biometrics
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = DarkBg,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isBiometricEnabled) Indigo500.copy(alpha = 0.5f) else Slate800),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
                             ) {
-                                Icon(Icons.Default.Lock, contentDescription = null, tint = Indigo500, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Сменить ПИН-код", color = Indigo500)
+                                Icon(
+                                    imageVector = Icons.Default.Fingerprint,
+                                    contentDescription = "Биометрия",
+                                    tint = if (isBiometricEnabled) Indigo500 else Slate400,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "Биометрия (Отпечаток / Face ID)",
+                                        color = Color.White,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = when (biometricStatus) {
+                                            BiometricPromptHelper.BiometricStatus.AVAILABLE ->
+                                                if (isPinEnabled) "Быстрый безопасный вход" else "Сначала включите ПИН-код"
+                                            BiometricPromptHelper.BiometricStatus.NOT_ENROLLED ->
+                                                "Биометрия не настроена на устройстве"
+                                            BiometricPromptHelper.BiometricStatus.NO_HARDWARE ->
+                                                "Биометрический сканер отсутствует"
+                                            BiometricPromptHelper.BiometricStatus.HARDWARE_UNAVAILABLE ->
+                                                "Сканер временно недоступен"
+                                            BiometricPromptHelper.BiometricStatus.SECURITY_UPDATE_REQUIRED ->
+                                                "Требуется обновление безопасности"
+                                            BiometricPromptHelper.BiometricStatus.UNSUPPORTED ->
+                                                "Биометрия не поддерживается"
+                                        },
+                                        color = when {
+                                            !isPinEnabled -> Slate400
+                                            biometricStatus == BiometricPromptHelper.BiometricStatus.NOT_ENROLLED -> Rose500
+                                            isBiometricEnabled -> Emerald400
+                                            else -> Slate400
+                                        },
+                                        fontSize = 12.sp
+                                    )
+                                }
                             }
+
+                            Switch(
+                                checked = isBiometricEnabled,
+                                enabled = isPinEnabled && isBiometricAvailable,
+                                onCheckedChange = { checked ->
+                                    securityManager.setBiometricEnabled(checked)
+                                    isBiometricEnabled = checked
+                                    onSecurityUpdated()
+                                    Toast.makeText(
+                                        context,
+                                        if (checked) "Вход по биометрии включен" else "Вход по биометрии отключен",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = Indigo500,
+                                    uncheckedThumbColor = Slate400,
+                                    uncheckedTrackColor = Slate800
+                                ),
+                                modifier = Modifier.testTag("toggle_biometric_switch")
+                            )
                         }
 
-                        if (onBack != null) {
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
+                        if (biometricStatus == BiometricPromptHelper.BiometricStatus.NOT_ENROLLED) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            OutlinedButton(
+                                onClick = { BiometricPromptHelper.openBiometricEnrollmentSettings(context) },
+                                shape = RoundedCornerShape(8.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Indigo500.copy(alpha = 0.5f)),
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                TextButton(
-                                    onClick = onBack,
-                                    modifier = Modifier.testTag("back_to_settings_button")
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Назад",
-                                        tint = Slate400,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Назад", color = Slate400, fontSize = 14.sp)
-                                }
+                                Icon(Icons.Default.Face, contentDescription = null, tint = Indigo500, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Настроить биометрию в системе", color = Indigo500, fontSize = 12.sp)
                             }
                         }
                     }
+                }
 
-                    SecurityDialogState.CREATE_PIN, SecurityDialogState.CONFIRM_PIN -> {
+                if (isPinEnabled) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            oldPinInput = ""
+                            pinInput1 = ""
+                            pinInput2 = ""
+                            errorMessage = null
+                            dialogState = SecurityDialogState.CHANGE_PIN_OLD
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("change_pin_button"),
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Indigo500.copy(alpha = 0.5f))
+                    ) {
+                        Icon(Icons.Default.Lock, contentDescription = null, tint = Indigo500, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Сменить ПИН-код", color = Indigo500)
+                    }
+                }
+
+                if (onBack != null) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = onBack,
+                            modifier = Modifier.testTag("back_to_settings_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Назад",
+                                tint = Slate400,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Назад", color = Slate400, fontSize = 14.sp)
+                        }
+                    }
+                }
+            }
+
+            SecurityDialogState.CREATE_PIN, SecurityDialogState.CONFIRM_PIN -> {
                         androidx.compose.runtime.key(dialogState) {
                             PinInputStepView(
                                 title = if (dialogState == SecurityDialogState.CREATE_PIN) "Придумайте ПИН-код" else "Повторите ПИН-код",

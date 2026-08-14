@@ -37,6 +37,14 @@ import androidx.compose.ui.unit.sp
 import com.example.data.db.TransactionEntity
 import com.example.ui.components.charts.MonthlyBarChart
 import com.example.ui.components.formatFullCurrency
+import com.example.ui.theme.CyberCardBg
+import com.example.ui.theme.CyberCardBorder
+import com.example.ui.theme.CyberEmerald
+import com.example.ui.theme.CyberRose
+import com.example.ui.theme.CyberIndigo
+import com.example.ui.theme.NeonGlassCard
+import com.example.ui.theme.NeonFinancialText
+import com.example.ui.theme.neonGlow
 import com.example.ui.theme.Emerald400
 import com.example.ui.theme.Rose500
 import com.example.ui.theme.Sky400
@@ -150,84 +158,75 @@ fun AnnualReportScreen(
             val expFormatted = formatFullCurrency(annualTotalExpense)
             val savFormatted = formatFullCurrency(annualTotalSavings)
 
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900.copy(alpha = 0.7f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
+            NeonGlassCard(
                 shape = RoundedCornerShape(16.dp),
+                borderColor = CyberEmerald.copy(alpha = 0.35f),
+                backgroundColor = CyberCardBg,
                 modifier = Modifier.weight(1f)
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text("ПОЛУЧЕНО", color = Slate400, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                    Text(
-                        text = incFormatted,
-                        color = Emerald400,
+                    Text("ПОЛУЧЕНО", color = Slate400, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                    NeonFinancialText(
+                        amountText = incFormatted,
+                        color = CyberEmerald,
                         fontSize = when {
                             incFormatted.length > 13 -> 10.sp
                             incFormatted.length > 9 -> 11.sp
                             else -> 13.sp
                         },
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
+                        fontWeight = FontWeight.Black
                     )
                 }
             }
 
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900.copy(alpha = 0.7f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
+            NeonGlassCard(
                 shape = RoundedCornerShape(16.dp),
+                borderColor = CyberRose.copy(alpha = 0.35f),
+                backgroundColor = CyberCardBg,
                 modifier = Modifier.weight(1f)
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text("ПОТРАЧЕНО", color = Slate400, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                    Text(
-                        text = expFormatted,
-                        color = Rose500,
+                    Text("ПОТРАЧЕНО", color = Slate400, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                    NeonFinancialText(
+                        amountText = expFormatted,
+                        color = CyberRose,
                         fontSize = when {
                             expFormatted.length > 13 -> 10.sp
                             expFormatted.length > 9 -> 11.sp
                             else -> 13.sp
                         },
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
+                        fontWeight = FontWeight.Black
                     )
                 }
             }
 
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900.copy(alpha = 0.7f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
+            NeonGlassCard(
                 shape = RoundedCornerShape(16.dp),
+                borderColor = CyberIndigo.copy(alpha = 0.35f),
+                backgroundColor = CyberCardBg,
                 modifier = Modifier.weight(1f)
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text("СБЕРЕЖЕНИЯ", color = Slate400, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                    Text(
-                        text = savFormatted,
-                        color = Sky400,
+                    Text("СБЕРЕЖЕНИЯ", color = Slate400, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                    NeonFinancialText(
+                        amountText = savFormatted,
+                        color = CyberIndigo,
                         fontSize = when {
                             savFormatted.length > 13 -> 10.sp
                             savFormatted.length > 9 -> 11.sp
                             else -> 13.sp
                         },
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
+                        fontWeight = FontWeight.Black
                     )
                 }
             }
         }
 
         // Bar Chart
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Slate900.copy(alpha = 0.8f)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
+        NeonGlassCard(
             shape = RoundedCornerShape(20.dp),
+            borderColor = CyberCardBorder,
+            backgroundColor = CyberCardBg,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -242,10 +241,10 @@ fun AnnualReportScreen(
         }
 
         // Monthly Breakdown Table
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Slate900.copy(alpha = 0.8f)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
+        NeonGlassCard(
             shape = RoundedCornerShape(20.dp),
+            borderColor = CyberCardBorder,
+            backgroundColor = CyberCardBg,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {

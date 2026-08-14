@@ -233,10 +233,11 @@ fun CategoriesDialog(
     }
 
     SwipeToDismissDialog(onDismissRequest = onDismiss) {
-        Surface(
+        NeonGlassCard(
             shape = RoundedCornerShape(24.dp),
-            color = Slate900,
-            border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
+            borderColor = CyberCardBorderGlow,
+            glowColor = CyberIndigo,
+            backgroundColor = CyberCardBg,
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
             Column(
@@ -275,16 +276,16 @@ fun CategoriesDialog(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(DarkBg)
-                            .border(1.dp, Slate800, RoundedCornerShape(12.dp))
+                            .background(if (newType == "expense") CyberRose.copy(alpha = 0.12f) else CyberEmerald.copy(alpha = 0.12f))
+                            .border(1.dp, if (newType == "expense") CyberRose.copy(alpha = 0.5f) else CyberEmerald.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                             .clickable {
                                 newType = if (newType == "expense") "income" else "expense"
                             }
-                            .padding(horizontal = 12.dp, vertical = 14.dp)
+                            .padding(horizontal = 14.dp, vertical = 14.dp)
                     ) {
                         Text(
                             text = if (newType == "expense") "Расход" else "Доход",
-                            color = if (newType == "expense") Rose500 else Emerald400,
+                            color = if (newType == "expense") CyberRose else CyberEmerald,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -293,14 +294,14 @@ fun CategoriesDialog(
                     OutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it.capitalizeFirstLetter() },
-                        placeholder = { Text("Категория", color = Slate400, fontSize = 12.sp) },
+                        placeholder = { Text("Новая категория", color = Slate400, fontSize = 12.sp) },
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = DarkBg,
-                            unfocusedContainerColor = DarkBg,
-                            focusedBorderColor = Emerald400,
-                            unfocusedBorderColor = Slate800,
+                            focusedContainerColor = CyberBg,
+                            unfocusedContainerColor = CyberBg,
+                            focusedBorderColor = CyberEmerald,
+                            unfocusedBorderColor = CyberCardBorder,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         ),
@@ -314,16 +315,16 @@ fun CategoriesDialog(
                                 newName = ""
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Emerald400),
+                        colors = ButtonDefaults.buttonColors(containerColor = CyberEmerald),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("+", color = DarkBg, fontWeight = FontWeight.Black)
+                        Text("+", color = CyberBg, fontWeight = FontWeight.Black, fontSize = 16.sp)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Text("ДОХОДЫ", color = Emerald400, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                Text("ДОХОДЫ", color = CyberEmerald, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                 Spacer(modifier = Modifier.height(10.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -334,8 +335,9 @@ fun CategoriesDialog(
                         key(cat.id) {
                             Row(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Slate800)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(CyberBgAlt)
+                                    .border(1.dp, CyberEmerald.copy(alpha = 0.35f), RoundedCornerShape(10.dp))
                                     .clickable { categoryToDelete = cat }
                                     .padding(horizontal = 12.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -344,14 +346,14 @@ fun CategoriesDialog(
                                 Text(
                                     text = cat.name,
                                     color = Color.White,
-                                    fontSize = 14.sp,
+                                    fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium
                                 )
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Удалить",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
+                                    tint = CyberEmerald,
+                                    modifier = Modifier.size(14.dp)
                                 )
                             }
                         }
@@ -360,7 +362,7 @@ fun CategoriesDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Text("РАСХОДЫ", color = Rose500, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                Text("РАСХОДЫ", color = CyberRose, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                 Spacer(modifier = Modifier.height(10.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -371,8 +373,9 @@ fun CategoriesDialog(
                         key(cat.id) {
                             Row(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Slate800)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(CyberBgAlt)
+                                    .border(1.dp, CyberRose.copy(alpha = 0.35f), RoundedCornerShape(10.dp))
                                     .clickable { categoryToDelete = cat }
                                     .padding(horizontal = 12.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -381,14 +384,14 @@ fun CategoriesDialog(
                                 Text(
                                     text = cat.name,
                                     color = Color.White,
-                                    fontSize = 14.sp,
+                                    fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium
                                 )
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Удалить",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
+                                    tint = CyberRose,
+                                    modifier = Modifier.size(14.dp)
                                 )
                             }
                         }

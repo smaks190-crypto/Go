@@ -76,7 +76,7 @@ class GeminiLiveWebSocketClient {
                 isConnected = true
                 GlobalConsoleLogger.i("GEMINI_WS", "WebSocket соединение успешно установлено!")
 
-                // 1. Отправляем начальный Setup кадр с модальностью AUDIO
+                // 1. Отправляем начальный Setup кадр с поддержкой TEXT и AUDIO модальностей
                 val prebuiltVoiceConfig = JSONObject().apply {
                     put("voice_name", "Puck")
                     put("voiceName", "Puck")
@@ -89,9 +89,13 @@ class GeminiLiveWebSocketClient {
                     put("voice_config", voiceConfig)
                     put("voiceConfig", voiceConfig)
                 }
+                val modalities = JSONArray().apply {
+                    put("TEXT")
+                    put("AUDIO")
+                }
                 val genConfig = JSONObject().apply {
-                    put("response_modalities", JSONArray().put("AUDIO"))
-                    put("responseModalities", JSONArray().put("AUDIO"))
+                    put("response_modalities", modalities)
+                    put("responseModalities", modalities)
                     put("speech_config", speechConfig)
                     put("speechConfig", speechConfig)
                 }

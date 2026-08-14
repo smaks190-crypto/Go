@@ -74,6 +74,14 @@ import com.example.ui.components.formatAmountTextFieldValue
 import com.example.ui.components.formatFullCurrency
 import com.example.ui.components.formatDayHeaderLabel
 import com.example.ui.components.parseAmountInput
+import com.example.ui.theme.CyberCardBg
+import com.example.ui.theme.CyberCardBorder
+import com.example.ui.theme.CyberEmerald
+import com.example.ui.theme.CyberRose
+import com.example.ui.theme.CyberIndigo
+import com.example.ui.theme.NeonGlassCard
+import com.example.ui.theme.NeonFinancialText
+import com.example.ui.theme.neonGlow
 import com.example.ui.theme.Emerald400
 import com.example.ui.theme.Indigo500
 import com.example.ui.theme.Rose500
@@ -183,19 +191,11 @@ fun DebtsScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Card for "Я должен" (We owe)
-                Card(
-                    modifier = Modifier
-                        .weight(1f)
-                        .shadow(
-                            elevation = 8.dp,
-                            shape = RoundedCornerShape(20.dp),
-                            clip = false,
-                            ambientColor = Rose500,
-                            spotColor = Rose500
-                        ),
+                NeonGlassCard(
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Slate900),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Rose500.copy(alpha = 0.3f))
+                    borderColor = CyberRose.copy(alpha = 0.4f),
+                    backgroundColor = CyberCardBg,
+                    modifier = Modifier.weight(1f)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -205,7 +205,7 @@ fun DebtsScreen(
                             Icon(
                                 imageVector = Icons.Default.ArrowDownward,
                                 contentDescription = null,
-                                tint = Rose500,
+                                tint = CyberRose,
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
@@ -227,19 +227,11 @@ fun DebtsScreen(
                 }
 
                 // Card for "Мне должны" (Owed to us)
-                Card(
-                    modifier = Modifier
-                        .weight(1f)
-                        .shadow(
-                            elevation = 8.dp,
-                            shape = RoundedCornerShape(20.dp),
-                            clip = false,
-                            ambientColor = Emerald400,
-                            spotColor = Emerald400
-                        ),
+                NeonGlassCard(
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Slate900),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Emerald400.copy(alpha = 0.3f))
+                    borderColor = CyberEmerald.copy(alpha = 0.4f),
+                    backgroundColor = CyberCardBg,
+                    modifier = Modifier.weight(1f)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -249,7 +241,7 @@ fun DebtsScreen(
                             Icon(
                                 imageVector = Icons.Default.ArrowUpward,
                                 contentDescription = null,
-                                tint = Emerald400,
+                                tint = CyberEmerald,
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
@@ -363,20 +355,13 @@ fun DebtCard(
     val directionLabel = if (isWeOwe) "Я должен" else "Мне должны"
     val icon = if (isWeOwe) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward
 
-    Card(
+    NeonGlassCard(
+        shape = RoundedCornerShape(20.dp),
+        borderColor = CyberCardBorder,
+        backgroundColor = CyberCardBg,
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(20.dp),
-                clip = false,
-                ambientColor = accentColor,
-                spotColor = accentColor
-            ),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Slate900.copy(alpha = 0.85f)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Slate800)
     ) {
         Box(modifier = Modifier.padding(16.dp)) {
             // Subtle Neon Glow inside card

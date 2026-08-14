@@ -21,11 +21,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.SettingsScreen
 import com.example.ui.components.settingsSharedBounds
-import com.example.ui.theme.Emerald400
+import com.example.ui.theme.CyberCardBg
+import com.example.ui.theme.CyberCardBorder
+import com.example.ui.theme.CyberEmerald
+import com.example.ui.theme.CyberBgAlt
+import com.example.ui.theme.neonGlow
+import com.example.ui.theme.NeonGlassCard
 import com.example.ui.theme.Slate400
 import com.example.ui.theme.Slate500
-import com.example.ui.theme.Slate800
-import com.example.ui.theme.Slate900
 
 @Composable
 fun SettingsCategoryHeader(text: String) {
@@ -34,6 +37,7 @@ fun SettingsCategoryHeader(text: String) {
         color = Slate500,
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
+        letterSpacing = 0.8.sp,
         modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 4.dp)
     )
 }
@@ -45,21 +49,20 @@ fun SettingsItemCard(
     title: String,
     subtitle: String,
     badgeText: String? = null,
-    badgeColor: Color = Emerald400,
+    badgeColor: Color = CyberEmerald,
     screenKey: SettingsScreen? = null,
     testTag: String? = null,
     onClick: () -> Unit
 ) {
-    Surface(
+    NeonGlassCard(
         modifier = Modifier
             .fillMaxWidth()
             .settingsSharedBounds(screenKey)
-            .then(if (testTag != null) Modifier.testTag(testTag) else Modifier)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onClick() },
+            .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
         shape = RoundedCornerShape(16.dp),
-        color = Slate900,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Slate800)
+        borderColor = CyberCardBorder,
+        backgroundColor = CyberCardBg,
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
@@ -75,8 +78,10 @@ fun SettingsItemCard(
                 Box(
                     modifier = Modifier
                         .size(38.dp)
+                        .neonGlow(color = iconTint, radius = 6.dp, alpha = 0.25f, shape = CircleShape)
                         .clip(CircleShape)
-                        .background(iconTint.copy(alpha = 0.15f)),
+                        .background(CyberBgAlt)
+                        .border(1.dp, iconTint.copy(alpha = 0.45f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -112,13 +117,13 @@ fun SettingsItemCard(
                 Surface(
                     shape = RoundedCornerShape(20.dp),
                     color = badgeColor.copy(alpha = 0.15f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, badgeColor.copy(alpha = 0.3f))
+                    border = androidx.compose.foundation.BorderStroke(1.dp, badgeColor.copy(alpha = 0.4f))
                 ) {
                     Text(
                         text = badgeText,
                         color = badgeColor,
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }
@@ -126,3 +131,4 @@ fun SettingsItemCard(
         }
     }
 }
+

@@ -63,7 +63,14 @@ import com.example.ui.components.formatAmountTextFieldValue
 import com.example.ui.components.formatFullCurrency
 import com.example.ui.components.parseAmountInput
 import androidx.compose.ui.text.input.TextFieldValue
-import com.example.ui.theme.Emerald400
+import com.example.ui.theme.CyberCardBg
+import com.example.ui.theme.CyberCardBorder
+import com.example.ui.theme.CyberEmerald
+import com.example.ui.theme.CyberRose
+import com.example.ui.theme.CyberIndigo
+import com.example.ui.theme.NeonGlassCard
+import com.example.ui.theme.NeonFinancialText
+import com.example.ui.theme.neonGlow
 import com.example.ui.theme.Emerald400
 import com.example.ui.theme.Rose500
 import com.example.ui.theme.Slate100
@@ -228,13 +235,13 @@ fun GoalCardItem(
         }
     }
 
-    val cardBg = if (isPendingDelete) Rose500.copy(alpha = 0.9f) else Slate900.copy(alpha = 0.8f)
-    val cardBorder = if (isPendingDelete) androidx.compose.foundation.BorderStroke(1.5.dp, Rose500) else androidx.compose.foundation.BorderStroke(1.dp, Slate800)
+    val cardBg = if (isPendingDelete) CyberRose.copy(alpha = 0.9f) else CyberCardBg
+    val cardBorderColor = if (isPendingDelete) CyberRose else CyberCardBorder
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = cardBg),
-        border = cardBorder,
+    NeonGlassCard(
         shape = RoundedCornerShape(20.dp),
+        borderColor = cardBorderColor,
+        backgroundColor = cardBg,
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
@@ -362,7 +369,15 @@ fun GoalCardItem(
                         .fillMaxWidth(percent / 100f)
                         .height(8.dp)
                         .clip(RoundedCornerShape(4.dp))
-                        .background(if (isPendingDelete) Color.White else Emerald400)
+                        .background(
+                            brush = if (isPendingDelete) {
+                                androidx.compose.ui.graphics.SolidColor(Color.White)
+                            } else {
+                                androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                    listOf(CyberEmerald, CyberIndigo)
+                                )
+                            }
+                        )
                 )
             }
 

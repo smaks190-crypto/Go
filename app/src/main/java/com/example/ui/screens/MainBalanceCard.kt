@@ -27,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -48,171 +47,168 @@ fun MainBalanceCard(
     onExpensesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(elevation = 12.dp, shape = RoundedCornerShape(20.dp), ambientColor = NeonIndigo, spotColor = NeonIndigo)
-            .clip(RoundedCornerShape(20.dp)),
-        shape = RoundedCornerShape(20.dp),
-        color = DarkSurface,
-        border = BorderStroke(
-            width = 1.dp,
-            brush = Brush.linearGradient(
-                listOf(
-                    NeonGreen.copy(alpha = 0.5f),
-                    NeonIndigo.copy(alpha = 0.5f),
-                    NeonRose.copy(alpha = 0.5f)
-                )
-            )
-        )
+    NeonGlassCard(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        borderColor = CyberIndigo.copy(alpha = 0.4f),
+        glowColor = CyberIndigo.copy(alpha = 0.25f),
+        backgroundColor = CyberCardBg
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "ТЕКУЩИЙ БАЛАНС",
-                    color = TextSecondary,
-                    fontSize = 11.sp,
-                    letterSpacing = 1.sp,
-                    fontWeight = FontWeight.SemiBold
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            CyberCardBg,
+                            CyberBgAlt.copy(alpha = 0.95f)
+                        )
+                    )
+                )
+                .padding(20.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "ТЕКУЩИЙ БАЛАНС",
+                        color = TextSecondary,
+                        fontSize = 11.sp,
+                        letterSpacing = 1.2.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Surface(
+                        shape = CircleShape,
+                        color = CyberEmerald.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, CyberEmerald.copy(alpha = 0.4f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.TrendingUp,
+                                contentDescription = null,
+                                tint = CyberEmerald,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = "Норма ${monthSavingsRate}%",
+                                color = CyberEmerald,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                NeonFinancialText(
+                    amountText = formatFullCurrency(monthTotalAccumulatedBalance),
+                    color = Color.White,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    glow = true,
+                    glowColor = if (monthTotalAccumulatedBalance >= 0) CyberIndigo else CyberRose
                 )
 
-                Surface(
-                    shape = CircleShape,
-                    color = NeonGreen.copy(alpha = 0.12f),
-                    border = BorderStroke(1.dp, NeonGreen.copy(alpha = 0.35f))
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    // Income Pill Button
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.TrendingUp,
-                            contentDescription = null,
-                            tint = NeonGreen,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Text(
-                            text = "Норма ${monthSavingsRate}%",
-                            color = NeonGreen,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = formatFullCurrency(monthTotalAccumulatedBalance),
-                color = TextPrimary,
-                fontSize = 28.sp,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.ExtraBold
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(14.dp))
-                        .clickable { onIncomesClick() }
-                        .background(NeonGreen.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
-                        .border(1.dp, NeonGreen.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
                         modifier = Modifier
-                            .size(38.dp)
-                            .shadow(
-                                elevation = 8.dp,
-                                shape = CircleShape,
-                                ambientColor = NeonGreen,
-                                spotColor = NeonGreen
-                            )
-                            .clip(CircleShape)
-                            .background(NeonGreen.copy(alpha = 0.15f))
-                            .border(1.dp, NeonGreen.copy(alpha = 0.5f), CircleShape),
-                        contentAlignment = Alignment.Center
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onIncomesClick() }
+                            .background(CyberEmerald.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+                            .border(1.dp, CyberEmerald.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.SouthWest,
-                            contentDescription = null,
-                            tint = NeonGreen,
-                            modifier = Modifier.size(18.dp)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .neonGlow(CyberEmerald, radius = 8.dp, alpha = 0.3f, shape = CircleShape)
+                                .clip(CircleShape)
+                                .background(CyberEmerald.copy(alpha = 0.15f))
+                                .border(1.dp, CyberEmerald.copy(alpha = 0.6f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SouthWest,
+                                contentDescription = null,
+                                tint = CyberEmerald,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(text = "Доходы", color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                            Text(
+                                text = "+\u00A0${formatFullCurrency(monthTotalIncome)}",
+                                color = CyberEmerald,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
-                        Text(text = "Доходы", color = TextSecondary, fontSize = 11.sp)
-                        Text(
-                            text = "+\u00A0${formatFullCurrency(monthTotalIncome)}",
-                            color = NeonGreen,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace,
-                            maxLines = 1,
-                            softWrap = false,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
 
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(14.dp))
-                        .clickable { onExpensesClick() }
-                        .background(NeonRose.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
-                        .border(1.dp, NeonRose.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
+                    // Expense Pill Button
+                    Row(
                         modifier = Modifier
-                            .size(38.dp)
-                            .shadow(
-                                elevation = 8.dp,
-                                shape = CircleShape,
-                                ambientColor = NeonRose,
-                                spotColor = NeonRose
-                            )
-                            .clip(CircleShape)
-                            .background(NeonRose.copy(alpha = 0.15f))
-                            .border(1.dp, NeonRose.copy(alpha = 0.5f), CircleShape),
-                        contentAlignment = Alignment.Center
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onExpensesClick() }
+                            .background(CyberRose.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+                            .border(1.dp, CyberRose.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.NorthEast,
-                            contentDescription = null,
-                            tint = NeonRose,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
-                        Text(text = "Расходы", color = TextSecondary, fontSize = 11.sp)
-                        Text(
-                            text = "-\u00A0${formatFullCurrency(monthTotalExpense)}",
-                            color = NeonRose,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace,
-                            maxLines = 1,
-                            softWrap = false,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .neonGlow(CyberRose, radius = 8.dp, alpha = 0.3f, shape = CircleShape)
+                                .clip(CircleShape)
+                                .background(CyberRose.copy(alpha = 0.15f))
+                                .border(1.dp, CyberRose.copy(alpha = 0.6f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.NorthEast,
+                                contentDescription = null,
+                                tint = CyberRose,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(text = "Расходы", color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                            Text(
+                                text = "-\u00A0${formatFullCurrency(monthTotalExpense)}",
+                                color = CyberRose,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }

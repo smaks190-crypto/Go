@@ -96,11 +96,12 @@ class SecurityManager(context: Context) {
         prefs.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply()
     }
 
+    fun getBiometricStatus(context: Context): com.example.ui.security.BiometricPromptHelper.BiometricStatus {
+        return com.example.ui.security.BiometricPromptHelper.checkBiometricStatus(context)
+    }
+
     fun isBiometricHardwareAvailable(context: Context): Boolean {
-        val biometricManager = BiometricManager.from(context)
-        val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or
-                BiometricManager.Authenticators.BIOMETRIC_WEAK
-        return biometricManager.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
+        return getBiometricStatus(context) == com.example.ui.security.BiometricPromptHelper.BiometricStatus.AVAILABLE
     }
 
     private fun hashPin(pin: String): String {

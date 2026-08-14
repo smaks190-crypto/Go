@@ -207,7 +207,7 @@ fun SettingsHubDialog(
             onDismiss()
         },
         sheetState = sheetState,
-        containerColor = Slate900,
+        containerColor = com.example.ui.theme.CyberCardBg,
         dragHandle = null
     ) {
         Card(
@@ -222,9 +222,9 @@ fun SettingsHubDialog(
                         stiffness = Spring.StiffnessLow
                     )
                 )
-                .border(1.dp, Slate800, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)),
+                .border(1.dp, com.example.ui.theme.CyberCardBorder, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)),
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            colors = CardDefaults.cardColors(containerColor = Slate900)
+            colors = CardDefaults.cardColors(containerColor = com.example.ui.theme.CyberCardBg)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -236,7 +236,7 @@ fun SettingsHubDialog(
                         .width(36.dp)
                         .height(4.dp)
                         .clip(CircleShape)
-                        .background(Slate700)
+                        .background(com.example.ui.theme.CyberCardBorder)
                 )
                 androidx.compose.animation.SharedTransitionLayout {
                     androidx.compose.runtime.CompositionLocalProvider(

@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -63,7 +64,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.Emerald400
+import com.example.ui.theme.CyberBg
+import com.example.ui.theme.CyberBgAlt
+import com.example.ui.theme.CyberCardBg
+import com.example.ui.theme.CyberCardBorder
+import com.example.ui.theme.CyberEmerald
+import com.example.ui.theme.CyberRose
+import com.example.ui.theme.CyberIndigo
+import com.example.ui.theme.NeonGlassCard
+import com.example.ui.theme.neonGlow
 import com.example.ui.theme.Emerald400
 import com.example.ui.theme.Indigo500
 import com.example.ui.theme.Rose500
@@ -176,7 +185,7 @@ fun PinLockScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkBg)
+            .background(CyberBg)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -193,16 +202,17 @@ fun PinLockScreen(
             // Header Icon
             Box(
                 modifier = Modifier
-                    .size(72.dp)
+                    .size(76.dp)
+                    .neonGlow(color = CyberEmerald, radius = 12.dp, alpha = 0.35f, shape = CircleShape)
                     .clip(CircleShape)
-                    .background(Slate900)
-                    .border(2.dp, Emerald400.copy(alpha = 0.5f), CircleShape),
+                    .background(CyberBgAlt)
+                    .border(2.dp, CyberEmerald.copy(alpha = 0.7f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Lock,
                     contentDescription = "Замок",
-                    tint = Emerald400,
+                    tint = CyberEmerald,
                     modifier = Modifier.size(36.dp)
                 )
             }
@@ -236,26 +246,27 @@ fun PinLockScreen(
                 for (i in 0 until 4) {
                     val isFilled = i < enteredPin.length
                     val isError = errorMessage != null
+                    val dotColor = when {
+                        isError -> CyberRose
+                        isFilled -> CyberEmerald
+                        else -> CyberCardBg
+                    }
+                    val dotBorder = when {
+                        isError -> CyberRose
+                        isFilled -> CyberEmerald
+                        else -> CyberCardBorder
+                    }
                     Box(
                         modifier = Modifier
                             .size(18.dp)
+                            .then(
+                                if (isFilled || isError) {
+                                    Modifier.neonGlow(color = dotColor, radius = 6.dp, alpha = 0.5f, shape = CircleShape)
+                                } else Modifier
+                            )
                             .clip(CircleShape)
-                            .background(
-                                when {
-                                    isError -> Rose500
-                                    isFilled -> Emerald400
-                                    else -> Slate900
-                                }
-                            )
-                            .border(
-                                1.5.dp,
-                                when {
-                                    isError -> Rose500
-                                    isFilled -> Emerald400
-                                    else -> Slate800
-                                },
-                                CircleShape
-                            )
+                            .background(dotColor)
+                            .border(1.5.dp, dotBorder, CircleShape)
                     )
                 }
             }
@@ -318,18 +329,19 @@ fun PinLockScreen(
                         Surface(
                             onClick = onBiometricClick,
                             shape = CircleShape,
-                            color = Slate900,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Indigo500.copy(alpha = 0.4f)),
+                            color = CyberCardBg,
+                            border = androidx.compose.foundation.BorderStroke(1.5.dp, CyberIndigo.copy(alpha = 0.6f)),
                             modifier = Modifier
                                 .size(68.dp)
+                                .neonGlow(color = CyberIndigo, radius = 8.dp, alpha = 0.35f, shape = CircleShape)
                                 .testTag("pin_key_biometric")
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = Icons.Default.Face,
+                                    imageVector = Icons.Default.Fingerprint,
                                     contentDescription = "Отпечаток пальца",
-                                    tint = Indigo500,
-                                    modifier = Modifier.size(30.dp)
+                                    tint = CyberIndigo,
+                                    modifier = Modifier.size(32.dp)
                                 )
                             }
                         }
@@ -346,8 +358,8 @@ fun PinLockScreen(
                     Surface(
                         onClick = { onBackspace() },
                         shape = CircleShape,
-                        color = Slate900,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
+                        color = CyberCardBg,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, CyberCardBorder),
                         modifier = Modifier
                             .size(68.dp)
                             .testTag("pin_key_backspace")
@@ -494,8 +506,8 @@ private fun KeypadButton(
     Surface(
         onClick = onClick,
         shape = CircleShape,
-        color = Slate900,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
+        color = CyberCardBg,
+        border = androidx.compose.foundation.BorderStroke(1.dp, CyberCardBorder),
         modifier = modifier.size(68.dp)
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -503,7 +515,8 @@ private fun KeypadButton(
                 text = text,
                 color = Color.White,
                 fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
             )
         }
     }

@@ -68,6 +68,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShowChart
 
 import com.example.data.db.TransactionEntity
+import com.example.ui.theme.CyberCardBg
+import com.example.ui.theme.CyberCardBorder
+import com.example.ui.theme.CyberBg
+import com.example.ui.theme.CyberBgAlt
+import com.example.ui.theme.CyberIndigo
+import com.example.ui.theme.CyberEmerald
+import com.example.ui.theme.CyberRose
+import com.example.ui.theme.neonGlow
 import com.example.ui.theme.Emerald400
 import com.example.ui.theme.Indigo500
 import com.example.ui.theme.Rose500
@@ -192,8 +200,8 @@ fun ExpenseDynamicsAreaChartCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Slate900.copy(alpha = 0.6f))
-            .border(1.dp, Slate800.copy(alpha = 0.8f), RoundedCornerShape(16.dp))
+            .background(CyberCardBg)
+            .border(1.dp, CyberCardBorder, RoundedCornerShape(16.dp))
             .padding(16.dp)
             .then(
                 if (onClick != null) Modifier.clickable { onClick() } else Modifier

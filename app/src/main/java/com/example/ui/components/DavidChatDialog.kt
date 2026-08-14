@@ -228,6 +228,9 @@ fun ReportDetailsDialog(
                 .fillMaxSize()
                 .background(Slate950)
         ) {
+            var showMenu by remember { mutableStateOf(false) }
+            var currentFeedFilter by remember { mutableStateOf(ChatFeedFilter.ALL) }
+
             // Header (Telegram Style Top Bar)
             Row(
                 modifier = Modifier
@@ -274,11 +277,89 @@ fun ReportDetailsDialog(
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = {
+                        android.widget.Toast.makeText(context, "Аудиозвонки с Давидом скоро будут доступны в обновлении!", android.widget.Toast.LENGTH_SHORT).show()
+                    }) {
                         Icon(Icons.Default.Call, contentDescription = "Звонок", tint = Slate300)
                     }
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Меню", tint = Slate300)
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Меню", tint = Slate300)
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                            modifier = Modifier
+                                .background(Slate900)
+                                .border(1.dp, Slate800, RoundedCornerShape(8.dp))
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Прочитать все", color = Color.White, fontSize = 13.sp) },
+                                onClick = {
+                                    onMarkAllRead()
+                                    showMenu = false
+                                    android.widget.Toast.makeText(context, "Все сообщения отмечены как прочитанные", android.widget.Toast.LENGTH_SHORT).show()
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.DoneAll, contentDescription = null, tint = Emerald400, modifier = Modifier.size(18.dp))
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Только Диалог и Аудит", color = Color.White, fontSize = 13.sp) },
+                                onClick = {
+                                    currentFeedFilter = ChatFeedFilter.DIALOGUE
+                                    showMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Только Операции", color = Color.White, fontSize = 13.sp) },
+                                onClick = {
+                                    currentFeedFilter = ChatFeedFilter.OPERATIONS
+                                    showMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Показать всё", color = Color.White, fontSize = 13.sp) },
+                                onClick = {
+                                    currentFeedFilter = ChatFeedFilter.ALL
+                                    showMenu = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Feed Filter Selector (Dark Neon Cyberpunk Pills)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Slate900)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ChatFeedFilter.entries.forEach { filter ->
+                    val isSelected = currentFeedFilter == filter
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (isSelected) Indigo500.copy(alpha = 0.25f) else Slate800,
+                        border = BorderStroke(1.dp, if (isSelected) Indigo500 else Slate700.copy(alpha = 0.6f)),
+                        modifier = Modifier.clickable { currentFeedFilter = filter }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(filter.iconEmoji, fontSize = 11.sp)
+                            Text(
+                                text = filter.label,
+                                color = if (isSelected) Emerald400 else Slate300,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
                     }
                 }
             }
@@ -293,9 +374,25 @@ fun ReportDetailsDialog(
             // Unified Chat Feed
             val listState = rememberLazyListState()
 
-            val chatItems = remember(notifications, displayedSections.toList(), isLoading, isGeneratingReaction, isSimulatingTyping, hasSentRequest, auditTimestamp, auditText, requestTimestamp, showConnectingNeon, isConnectionRestored, welcomeTimestamp, changelogTimestamp, auditOfferTimestamp) {
+            val allChatItems = remember(
+                notifications,
+                displayedSections.toList(),
+                isLoading,
+                isGeneratingReaction,
+                isSimulatingTyping,
+                hasSentRequest,
+                auditTimestamp,
+                auditText,
+                requestTimestamp,
+                showConnectingNeon,
+                isConnectionRestored,
+                welcomeTimestamp,
+                changelogTimestamp,
+                auditOfferTimestamp
+            ) {
                 val items = mutableListOf<ChatItem>()
-                
+
+                // Stable anchor items
                 items.add(ChatWelcomeItem(welcomeTimestamp))
                 items.add(ChatChangelogItem(changelogTimestamp))
 
@@ -305,43 +402,48 @@ fun ReportDetailsDialog(
                     it.description.contains("Я Жабов Давид")
                 }
 
-                val notificationsToProcess = mutableListOf<NotificationEntity>()
-                val validAuditOfferTime = auditOfferTimestamp
-                
+                // Process stored notifications
                 for (notif in filteredNotifications) {
-                    if (notif.timestamp < validAuditOfferTime) {
-                        notificationsToProcess.add(notif)
-                    }
-                }
-                
-                val processNotifToItems: (NotificationEntity) -> List<ChatItem> = { notif ->
-                    val res = mutableListOf<ChatItem>()
                     if (notif.description.startsWith("||audit_req||")) {
                         val reqText = notif.description.removePrefix("||audit_req||")
-                        res.add(ChatAuditRequestItem(notif.timestamp, text = reqText, fileName = "Выписка_.csv"))
+                        items.add(ChatAuditRequestItem(notif.timestamp, text = reqText, fileName = "Выписка_$periodTitle.csv"))
                     } else if (notif.description.startsWith("||audit_block||")) {
                         val blockText = notif.description.removePrefix("||audit_block||")
                         val isFirst = notif.title.contains("Главный Вердикт") || notif.title.contains("Аналитика")
-                        res.add(ChatAuditBlockItem(notif.timestamp, text = blockText, isFirst = isFirst))
+                        items.add(ChatAuditBlockItem(notif.timestamp, text = blockText, isFirst = isFirst))
                     } else {
                         val (ops, _, _) = extractOpsAndComment(notif)
                         if (ops.isNotEmpty()) {
-                            res.add(ChatNotificationUserItem(notif))
+                            items.add(ChatNotificationUserItem(notif))
                         }
-                        res.add(ChatNotificationDavidItem(notif))
+                        items.add(ChatNotificationDavidItem(notif))
                     }
-                    res
                 }
 
-                for (notif in notificationsToProcess) {
-                    items.addAll(processNotifToItems(notif))
+                items.add(ChatAuditOfferItem(auditOfferTimestamp))
+
+                // If currently running an audit or streaming live sections that aren't yet in DB notifications
+                if (hasSentRequest && requestTimestamp != null) {
+                    items.add(
+                        ChatAuditRequestItem(
+                            timestamp = requestTimestamp!!,
+                            text = "Давид, проведи аудит за $periodTitle",
+                            fileName = "Выписка_$periodTitle.csv"
+                        )
+                    )
                 }
 
-                items.add(ChatAuditOfferItem(validAuditOfferTime))
-
-                val notifsAfterOffer = filteredNotifications.filter { it.timestamp >= validAuditOfferTime }
-                for (notif in notifsAfterOffer) {
-                    items.addAll(processNotifToItems(notif))
+                if (displayedSections.isNotEmpty()) {
+                    val baseBlockTime = requestTimestamp ?: System.currentTimeMillis()
+                    displayedSections.forEachIndexed { index, secText ->
+                        items.add(
+                            ChatAuditBlockItem(
+                                timestamp = baseBlockTime + (index + 1) * 20L,
+                                text = secText,
+                                isFirst = index == 0
+                            )
+                        )
+                    }
                 }
 
                 if ((isLoading || isSimulatingTyping) && !showConnectingNeon) {
@@ -354,6 +456,10 @@ fun ReportDetailsDialog(
 
                 if (isGeneratingReaction) {
                     items.add(ChatTypingItem(System.currentTimeMillis(), "reaction"))
+                }
+
+                if (auditText == "ERROR_NO_CONNECTION") {
+                    items.add(ChatAuditRetryItem(System.currentTimeMillis()))
                 }
 
                 val sorted = items.sortedBy { it.timestamp }.toMutableList()
@@ -371,6 +477,14 @@ fun ReportDetailsDialog(
                     sorted.add(firstUnreadNotifIndex, ChatUnreadSeparatorItem(unreadItem.timestamp - 1))
                 }
                 sorted
+            }
+
+            val chatItems = remember(allChatItems, currentFeedFilter) {
+                when (currentFeedFilter) {
+                    ChatFeedFilter.ALL -> allChatItems
+                    ChatFeedFilter.DIALOGUE -> allChatItems.filter { it.category != ChatCategory.OPERATION }
+                    ChatFeedFilter.OPERATIONS -> allChatItems.filter { it.category == ChatCategory.OPERATION || it.category == ChatCategory.SYSTEM }
+                }
             }
 
             val unreadSeparatorIndex = remember(chatItems) {
@@ -988,18 +1102,43 @@ data class ParsedActionLimit(
 )
 
 fun parseActionLimitsFromText(text: String): List<ParsedActionLimit> {
-    val regex = Regex("""\[ACTION:LIMIT\|([^|]+)\|(\d+(?:\.\d+)?)\]""", RegexOption.IGNORE_CASE)
-    val matches = regex.findAll(text)
-    return matches.mapNotNull { m ->
+    val results = mutableListOf<ParsedActionLimit>()
+    val seenCategories = mutableSetOf<String>()
+
+    // Pattern 1: Explicit tag formats: [ACTION:LIMIT|category|amount], [LIMIT|category|amount], [ACTION:LIMIT|category=amount], [LIMIT: category = amount]
+    val explicitRegex = Regex("""\[(?:ACTION:)?LIMIT\s*[:|]\s*([^|:=]+)\s*[|:=]\s*([^\]]+)\]""", RegexOption.IGNORE_CASE)
+    for (m in explicitRegex.findAll(text)) {
         val cat = m.groupValues[1].trim()
-        val amt = m.groupValues[2].toDoubleOrNull()
-        if (cat.isNotEmpty() && amt != null) ParsedActionLimit(cat, amt) else null
-    }.toList()
+        val rawAmt = m.groupValues[2].trim()
+            .replace(" ", "")
+            .replace(",", ".")
+            .replace("₽", "")
+            .replace("руб", "", ignoreCase = true)
+            .replace("rub", "", ignoreCase = true)
+        val amt = rawAmt.toDoubleOrNull()
+        if (cat.isNotEmpty() && amt != null && amt > 0 && seenCategories.add(cat.lowercase())) {
+            results.add(ParsedActionLimit(cat, amt))
+        }
+    }
+
+    // Pattern 2: Natural text limit recommendation (e.g. "установить лимит на Продукты: 15 000 ₽" or "рекомендую лимит на категорию 'Кафе' 5000 руб")
+    val naturalRegex = Regex("""(?:установить|рекомендую|лимит(?:\s+на)?)\s+(?:категори[юи]\s+)?["«']?([А-Яа-яA-Za-z0-9\s_-]{2,25})["»']?\s*(?::|—|-|=|\sв\sразмере)?\s*(\d[\d\s.,]*)\s*(?:₽|руб|rub)""", RegexOption.IGNORE_CASE)
+    for (m in naturalRegex.findAll(text)) {
+        val cat = m.groupValues[1].trim().trim('"', '«', '»', '\'')
+        val rawAmt = m.groupValues[2].trim().replace(" ", "").replace(",", ".")
+        val amt = rawAmt.toDoubleOrNull()
+        if (cat.isNotEmpty() && amt != null && amt >= 100 && seenCategories.add(cat.lowercase())) {
+            results.add(ParsedActionLimit(cat, amt))
+        }
+    }
+
+    return results
 }
 
 fun cleanChartTagsFromText(text: String): String {
     val cleanChart = text.replace(Regex("""\|\|chart:(.*?)\|\|""", RegexOption.DOT_MATCHES_ALL), "")
-    val cleanLimits = cleanChart.replace(Regex("""\[ACTION:LIMIT\|.*?\]""", RegexOption.IGNORE_CASE), "")
+    val cleanLimits = cleanChart
+        .replace(Regex("""\[(?:ACTION:)?LIMIT\s*[:|][^\]]+\]""", RegexOption.IGNORE_CASE), "")
     return cleanLimits.trim()
 }
 

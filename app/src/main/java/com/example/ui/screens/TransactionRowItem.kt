@@ -101,8 +101,8 @@ fun TransactionRowItem(
             modifier = modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(DarkSurface)
-                .border(BorderStroke(1.dp, DarkBorder), RoundedCornerShape(16.dp))
+                .background(CyberCardBg)
+                .border(BorderStroke(1.dp, CyberCardBorder), RoundedCornerShape(16.dp))
                 .clickable(enabled = onClick != null) { onClick?.invoke() }
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -115,9 +115,10 @@ fun TransactionRowItem(
                 Box(
                     modifier = Modifier
                         .size(38.dp)
+                        .neonGlow(color = iconTint, radius = 6.dp, alpha = 0.25f, shape = CircleShape)
                         .clip(CircleShape)
-                        .background(DarkSurfaceVariant)
-                        .border(1.dp, iconTint.copy(alpha = 0.35f), CircleShape),
+                        .background(CyberBgAlt)
+                        .border(1.dp, iconTint.copy(alpha = 0.45f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -150,11 +151,10 @@ fun TransactionRowItem(
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "$prefix${numberFormat.format(item.amount)} ₽",
-                color = if (isExpense) TextPrimary else NeonGreen,
+            NeonFinancialText(
+                amountText = "$prefix${numberFormat.format(item.amount)} ₽",
+                color = if (isExpense) TextPrimary else CyberEmerald,
                 fontSize = 14.sp,
-                fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold
             )
         }

@@ -95,11 +95,17 @@ import androidx.compose.ui.window.Dialog
 import com.example.data.db.BudgetProfileEntity
 import com.example.ui.components.SwipeToRevealBox
 import com.example.ui.components.SwipeDirection
-import com.example.ui.theme.Emerald400
+import com.example.ui.theme.CyberBg
+import com.example.ui.theme.CyberBgAlt
+import com.example.ui.theme.CyberCardBg
+import com.example.ui.theme.CyberCardBorder
+import com.example.ui.theme.CyberEmerald
+import com.example.ui.theme.CyberRose
+import com.example.ui.theme.CyberIndigo
+import com.example.ui.theme.NeonGlassCard
+import com.example.ui.theme.neonGlow
 import com.example.ui.theme.Emerald400
 import com.example.ui.theme.Indigo500
-import com.example.ui.theme.Indigo500
-import com.example.ui.theme.Rose500
 import com.example.ui.theme.Rose500
 import com.example.ui.theme.Slate100
 import com.example.ui.theme.Slate300
@@ -242,9 +248,11 @@ fun BudgetSelectionScreen(
                         Surface(
                             onClick = { onOpenSecurityModal() },
                             shape = RoundedCornerShape(12.dp),
-                            color = Slate900,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Emerald400.copy(alpha = 0.5f)),
-                            modifier = Modifier.testTag("open_security_button")
+                            color = CyberCardBg,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, CyberEmerald.copy(alpha = 0.5f)),
+                            modifier = Modifier
+                                .neonGlow(color = CyberEmerald, radius = 6.dp, alpha = 0.25f, shape = RoundedCornerShape(12.dp))
+                                .testTag("open_security_button")
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
@@ -254,12 +262,12 @@ fun BudgetSelectionScreen(
                                 Icon(
                                     imageVector = Icons.Default.Lock,
                                     contentDescription = "Защита",
-                                    tint = Emerald400,
+                                    tint = CyberEmerald,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
                                     text = "Защита",
-                                    color = Emerald400,
+                                    color = CyberEmerald,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -276,9 +284,11 @@ fun BudgetSelectionScreen(
                             }
                         },
                         shape = RoundedCornerShape(12.dp),
-                        color = Slate900,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Indigo500.copy(alpha = 0.5f)),
-                        modifier = Modifier.testTag("import_copy_button")
+                        color = CyberCardBg,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, CyberIndigo.copy(alpha = 0.5f)),
+                        modifier = Modifier
+                            .neonGlow(color = CyberIndigo, radius = 6.dp, alpha = 0.25f, shape = RoundedCornerShape(12.dp))
+                            .testTag("import_copy_button")
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
@@ -288,12 +298,12 @@ fun BudgetSelectionScreen(
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Из копии",
-                                tint = Indigo500,
+                                tint = CyberIndigo,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
                                 text = "Из копии",
-                                color = Indigo500,
+                                color = CyberIndigo,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -434,12 +444,13 @@ fun BudgetSelectionScreen(
                 isCreatingNew = true
                 newBudgetNameText = ""
             },
-            containerColor = Emerald400,
-            contentColor = DarkBg,
+            containerColor = CyberEmerald,
+            contentColor = CyberBg,
             shape = CircleShape,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(24.dp)
+                .neonGlow(color = CyberEmerald, radius = 10.dp, alpha = 0.4f, shape = CircleShape)
                 .testTag("create_budget_fab")
         ) {
             Icon(Icons.Default.Add, contentDescription = "Создать профиль")
@@ -463,14 +474,13 @@ fun InlineCreateBudgetCard(
         keyboardController?.show()
     }
 
-    Card(
+    NeonGlassCard(
+        shape = RoundedCornerShape(20.dp),
+        borderColor = CyberEmerald,
+        backgroundColor = CyberCardBg,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .testTag("inline_create_budget_card"),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Slate900),
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, Emerald400)
+            .testTag("inline_create_budget_card")
     ) {
         Row(
             modifier = Modifier
@@ -483,14 +493,14 @@ fun InlineCreateBudgetCard(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Emerald400.copy(alpha = 0.2f))
-                    .border(1.dp, Emerald400.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
+                    .background(CyberEmerald.copy(alpha = 0.2f))
+                    .border(1.dp, CyberEmerald.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
-                    tint = Emerald400,
+                    tint = CyberEmerald,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -504,10 +514,10 @@ fun InlineCreateBudgetCard(
                     .weight(1f)
                     .focusRequester(focusRequester),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = DarkBg,
-                    unfocusedContainerColor = DarkBg,
-                    focusedBorderColor = Emerald400,
-                    unfocusedBorderColor = Slate800,
+                    focusedContainerColor = CyberBg,
+                    unfocusedContainerColor = CyberBg,
+                    focusedBorderColor = CyberEmerald,
+                    unfocusedBorderColor = CyberCardBorder,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White
                 ),
@@ -529,7 +539,7 @@ fun InlineCreateBudgetCard(
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Сохранить",
-                        tint = Emerald400
+                        tint = CyberEmerald
                     )
                 }
                 IconButton(
@@ -691,17 +701,17 @@ fun BudgetProfileCard(
 
     val containerColor by animateColorAsState(
         targetValue = when {
-            isPendingDelete -> Rose500.copy(alpha = 0.85f)
-            isConfirmingDelete -> Rose500
-            else -> Slate900
+            isPendingDelete -> CyberRose.copy(alpha = 0.85f)
+            isConfirmingDelete -> CyberRose
+            else -> CyberCardBg
         },
         animationSpec = tween(durationMillis = 350),
         label = "containerColor"
     )
     val borderColor by animateColorAsState(
         targetValue = when {
-            isPendingDelete || isConfirmingDelete -> Rose500
-            else -> Slate800
+            isPendingDelete || isConfirmingDelete -> CyberRose
+            else -> CyberCardBorder
         },
         animationSpec = tween(durationMillis = 350),
         label = "borderColor"
@@ -709,7 +719,7 @@ fun BudgetProfileCard(
     val iconBgColor by animateColorAsState(
         targetValue = when {
             isPendingDelete || isConfirmingDelete -> Color.White.copy(alpha = 0.25f)
-            else -> Indigo500.copy(alpha = 0.2f)
+            else -> CyberIndigo.copy(alpha = 0.2f)
         },
         animationSpec = tween(durationMillis = 350),
         label = "iconBgColor"
@@ -717,7 +727,7 @@ fun BudgetProfileCard(
     val iconBorderColor by animateColorAsState(
         targetValue = when {
             isPendingDelete || isConfirmingDelete -> Color.White.copy(alpha = 0.4f)
-            else -> Indigo500.copy(alpha = 0.4f)
+            else -> CyberIndigo.copy(alpha = 0.4f)
         },
         animationSpec = tween(durationMillis = 350),
         label = "iconBorderColor"
@@ -725,7 +735,7 @@ fun BudgetProfileCard(
     val iconTint by animateColorAsState(
         targetValue = when {
             isPendingDelete || isConfirmingDelete -> Color.White
-            else -> Indigo500
+            else -> CyberIndigo
         },
         animationSpec = tween(durationMillis = 350),
         label = "iconTint"
@@ -739,7 +749,7 @@ fun BudgetProfileCard(
         resetSwipe = isConfirmingDelete || isPendingDelete,
         shape = RoundedCornerShape(20.dp)
     ) {
-        Card(
+        NeonGlassCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
@@ -748,16 +758,16 @@ fun BudgetProfileCard(
                         val progress = deleteProgress.value.coerceIn(0f, 1f)
                         val redEndFraction = (1f - progress).coerceIn(0f, 1f)
                         if (redEndFraction >= 0.99f) {
-                            drawRect(Rose500.copy(alpha = 0.85f))
+                            drawRect(CyberRose.copy(alpha = 0.85f))
                         } else if (redEndFraction <= 0.01f) {
-                            drawRect(Slate900)
+                            drawRect(CyberCardBg)
                         } else {
                             val brush = Brush.horizontalGradient(
                                 colorStops = arrayOf(
-                                    0f to Rose500.copy(alpha = 0.85f),
-                                    redEndFraction to Rose500.copy(alpha = 0.85f),
-                                    (redEndFraction + 0.03f).coerceAtMost(1f) to Slate900,
-                                    1f to Slate900
+                                    0f to CyberRose.copy(alpha = 0.85f),
+                                    redEndFraction to CyberRose.copy(alpha = 0.85f),
+                                    (redEndFraction + 0.03f).coerceAtMost(1f) to CyberCardBg,
+                                    1f to CyberCardBg
                                 )
                             )
                             drawRect(brush = brush)
@@ -773,10 +783,8 @@ fun BudgetProfileCard(
                     }
                 ),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = if (isPendingDelete) Color.Transparent else containerColor
-            ),
-            border = androidx.compose.foundation.BorderStroke(1.dp, borderColor)
+            backgroundColor = if (isPendingDelete) Color.Transparent else containerColor,
+            borderColor = borderColor
         ) {
             Row(
                 modifier = Modifier

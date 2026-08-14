@@ -91,7 +91,10 @@ import com.example.ui.theme.Rose500
 import com.example.ui.theme.Slate400
 import com.example.ui.theme.Slate800
 import com.example.ui.theme.Slate900
-import com.example.ui.theme.DarkBg
+import com.example.ui.theme.*
+import com.example.ui.theme.NeonGlassCard
+import com.example.ui.theme.NeonFinancialText
+import com.example.ui.theme.neonGlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -513,10 +516,10 @@ fun ExpenseSharesScreen(
 
 
                     // --- DETAILED CATEGORY BREAKDOWN LIST ---
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Slate900),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Slate800),
+                    NeonGlassCard(
                         shape = RoundedCornerShape(20.dp),
+                        borderColor = CyberCardBorder,
+                        backgroundColor = CyberCardBg,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(
@@ -607,8 +610,8 @@ fun ExpenseSharesScreen(
                                                 }
 
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Text(
-                                                        text = "${numberFormat.format(sumAmount)} ₽",
+                                                    NeonFinancialText(
+                                                        amountText = "${numberFormat.format(sumAmount)} ₽",
                                                         color = Color.White,
                                                         fontWeight = FontWeight.Bold,
                                                         fontSize = 13.sp

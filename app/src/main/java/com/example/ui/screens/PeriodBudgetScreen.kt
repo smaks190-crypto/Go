@@ -142,6 +142,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.example.ui.theme.Slate800
 import com.example.ui.theme.Slate900
 import com.example.ui.theme.DarkBg
+import com.example.ui.theme.*
 import com.example.ui.viewmodel.PeriodType
 import com.example.ui.viewmodel.BudgetViewModel
 import kotlinx.coroutines.launch
@@ -345,10 +346,10 @@ fun PeriodBudgetScreen(
             mainFilteredTransactions.take(10)
         }
 
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Slate900.copy(alpha = 0.6f)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Slate800.copy(alpha = 0.8f)),
+        NeonGlassCard(
             shape = RoundedCornerShape(20.dp),
+            borderColor = com.example.ui.theme.CyberCardBorder,
+            backgroundColor = com.example.ui.theme.CyberCardBg,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
