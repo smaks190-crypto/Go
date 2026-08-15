@@ -16,11 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.CyberIndigo
-import com.example.ui.theme.CyberEmerald
-import com.example.ui.theme.CyberGlowIndigo
-import com.example.ui.theme.neonGlow
-import com.example.ui.theme.Slate400
+import com.example.ui.theme.*
 
 @Composable
 fun PeriodButton(
@@ -34,22 +30,22 @@ fun PeriodButton(
             .then(
                 if (isSelected) {
                     Modifier.neonGlow(
-                        color = CyberIndigo,
+                        color = MintElectric,
                         radius = 8.dp,
-                        alpha = 0.35f,
-                        shape = RoundedCornerShape(10.dp)
+                        alpha = 0.25f,
+                        shape = RoundedCornerShape(12.dp)
                     )
                 } else Modifier
             )
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(
-                if (isSelected) Brush.horizontalGradient(listOf(CyberIndigo, CyberIndigo.copy(alpha = 0.85f)))
+                if (isSelected) Brush.horizontalGradient(listOf(MintDark, MintElectric))
                 else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
             )
             .border(
                 width = 1.dp,
-                color = if (isSelected) CyberIndigo.copy(alpha = 0.9f) else Color.Transparent,
-                shape = RoundedCornerShape(10.dp)
+                color = if (isSelected) MintElectric.copy(alpha = 0.7f) else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
             )
             .clickable(onClick = onClick)
             .padding(vertical = 8.dp),
@@ -57,11 +53,12 @@ fun PeriodButton(
     ) {
         Text(
             text = text,
-            color = if (isSelected) Color.White else Slate400,
+            color = if (isSelected) Color.White else TextSecondaryDark,
             fontSize = 11.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             maxLines = 1
         )
     }
 }
+
 

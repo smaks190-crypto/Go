@@ -49,10 +49,10 @@ fun MainBalanceCard(
 ) {
     NeonGlassCard(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        borderColor = CyberIndigo.copy(alpha = 0.4f),
-        glowColor = CyberIndigo.copy(alpha = 0.25f),
-        backgroundColor = CyberCardBg
+        shape = RoundedCornerShape(24.dp),
+        borderColor = CleanWhiteBorder,
+        glowColor = MintGlow,
+        backgroundColor = CleanWhiteSurface
     ) {
         Box(
             modifier = Modifier
@@ -60,12 +60,12 @@ fun MainBalanceCard(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            CyberCardBg,
-                            CyberBgAlt.copy(alpha = 0.95f)
+                            CleanWhiteSurface,
+                            CleanWhiteSurfaceVariant.copy(alpha = 0.6f)
                         )
                     )
                 )
-                .padding(20.dp)
+                .padding(22.dp)
         ) {
             Column {
                 Row(
@@ -75,7 +75,7 @@ fun MainBalanceCard(
                 ) {
                     Text(
                         text = "ТЕКУЩИЙ БАЛАНС",
-                        color = TextSecondary,
+                        color = TextSecondaryDark,
                         fontSize = 11.sp,
                         letterSpacing = 1.2.sp,
                         fontWeight = FontWeight.SemiBold
@@ -83,23 +83,23 @@ fun MainBalanceCard(
 
                     Surface(
                         shape = CircleShape,
-                        color = CyberEmerald.copy(alpha = 0.12f),
-                        border = BorderStroke(1.dp, CyberEmerald.copy(alpha = 0.4f))
+                        color = MintLight,
+                        border = BorderStroke(1.dp, MintElectric.copy(alpha = 0.5f))
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
                                 Icons.Default.TrendingUp,
                                 contentDescription = null,
-                                tint = CyberEmerald,
-                                modifier = Modifier.size(12.dp)
+                                tint = MintDark,
+                                modifier = Modifier.size(13.dp)
                             )
                             Text(
                                 text = "Норма ${monthSavingsRate}%",
-                                color = CyberEmerald,
+                                color = MintDark,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace
@@ -108,18 +108,17 @@ fun MainBalanceCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 NeonFinancialText(
                     amountText = formatFullCurrency(monthTotalAccumulatedBalance),
-                    color = Color.White,
-                    fontSize = 30.sp,
+                    color = TextPrimaryDark,
+                    fontSize = 32.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    glow = true,
-                    glowColor = if (monthTotalAccumulatedBalance >= 0) CyberIndigo else CyberRose
+                    glow = false
                 )
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -131,33 +130,32 @@ fun MainBalanceCard(
                             .weight(1f)
                             .clip(RoundedCornerShape(16.dp))
                             .clickable { onIncomesClick() }
-                            .background(CyberEmerald.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-                            .border(1.dp, CyberEmerald.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
+                            .background(MintLight, RoundedCornerShape(16.dp))
+                            .border(1.dp, MintElectric.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(38.dp)
-                                .neonGlow(CyberEmerald, radius = 8.dp, alpha = 0.3f, shape = CircleShape)
                                 .clip(CircleShape)
-                                .background(CyberEmerald.copy(alpha = 0.15f))
-                                .border(1.dp, CyberEmerald.copy(alpha = 0.6f), CircleShape),
+                                .background(MintElectric.copy(alpha = 0.2f))
+                                .border(1.dp, MintElectric.copy(alpha = 0.6f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.SouthWest,
                                 contentDescription = null,
-                                tint = CyberEmerald,
+                                tint = MintDark,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
-                            Text(text = "Доходы", color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                            Text(text = "Доходы", color = TextSecondaryDark, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                             Text(
                                 text = "+\u00A0${formatFullCurrency(monthTotalIncome)}",
-                                color = CyberEmerald,
+                                color = MintDark,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
@@ -174,33 +172,32 @@ fun MainBalanceCard(
                             .weight(1f)
                             .clip(RoundedCornerShape(16.dp))
                             .clickable { onExpensesClick() }
-                            .background(CyberRose.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-                            .border(1.dp, CyberRose.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
+                            .background(NordicCoralLight, RoundedCornerShape(16.dp))
+                            .border(1.dp, NordicCoral.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(38.dp)
-                                .neonGlow(CyberRose, radius = 8.dp, alpha = 0.3f, shape = CircleShape)
                                 .clip(CircleShape)
-                                .background(CyberRose.copy(alpha = 0.15f))
-                                .border(1.dp, CyberRose.copy(alpha = 0.6f), CircleShape),
+                                .background(NordicCoral.copy(alpha = 0.15f))
+                                .border(1.dp, NordicCoral.copy(alpha = 0.5f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.NorthEast,
                                 contentDescription = null,
-                                tint = CyberRose,
+                                tint = NordicCoral,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
-                            Text(text = "Расходы", color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                            Text(text = "Расходы", color = TextSecondaryDark, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                             Text(
                                 text = "-\u00A0${formatFullCurrency(monthTotalExpense)}",
-                                color = CyberRose,
+                                color = NordicCoral,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
@@ -215,4 +212,5 @@ fun MainBalanceCard(
         }
     }
 }
+
 

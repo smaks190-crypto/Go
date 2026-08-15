@@ -348,8 +348,8 @@ fun PeriodBudgetScreen(
 
         NeonGlassCard(
             shape = RoundedCornerShape(20.dp),
-            borderColor = com.example.ui.theme.CyberCardBorder,
-            backgroundColor = com.example.ui.theme.CyberCardBg,
+            borderColor = CleanWhiteBorder,
+            backgroundColor = CleanWhiteSurface,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -364,14 +364,14 @@ fun PeriodBudgetScreen(
                     Column {
                         Text(
                             text = "ПОСЛЕДНИЕ ОПЕРАЦИИ",
-                            color = Slate400,
+                            color = TextSecondaryDark,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
                         Text(
                             text = "Всего ${mainFilteredTransactions.size} транзакций",
-                            color = Slate500,
+                            color = TextMutedDark,
                             fontSize = 10.sp
                         )
                     }
@@ -379,7 +379,7 @@ fun PeriodBudgetScreen(
                     if (mainFilteredTransactions.isNotEmpty()) {
                         Text(
                             text = "Все ›",
-                            color = Indigo500,
+                            color = MintDark,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -402,7 +402,7 @@ fun PeriodBudgetScreen(
                     ) {
                         Text(
                             text = "Нет операций за выбранный период",
-                            color = Slate500,
+                            color = TextMutedDark,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )

@@ -34,54 +34,54 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // ==========================================
-// 🌌 CYBERPUNK NEON PALETTE TOKENS
+// 🌿 CLEAN WHITE & ELECTRIC MINT DESIGN TOKENS
 // ==========================================
 
-val CyberBg = Color(0xFF090D16)          // Deepest void background
-val CyberBgAlt = Color(0xFF0F172A)       // Secondary page background
-val CyberCardBg = Color(0xFF1E293B)      // Glass card fill
-val CyberCardBgSemi = Color(0xD91E293B)  // 85% opacity glass fill
-val CyberCardBorder = Color(0xFF334155)  // Slate-700 glass border
-val CyberCardBorderGlow = Color(0x666366F1) // Soft indigo border glow
+val CyberBg = CleanWhiteBg                  // Clean White Canvas
+val CyberBgAlt = CleanWhiteSurfaceVariant   // Soft Slate-100 container
+val CyberCardBg = CleanWhiteSurface         // Pure White Card Fill
+val CyberCardBgSemi = CleanWhiteSurface     // Pure White Surface
+val CyberCardBorder = CleanWhiteBorder      // Subtle Divider Border
+val CyberCardBorderGlow = MintGlow          // Mint soft border accent
 
-// Neon Accents
-val CyberEmerald = Color(0xFF34D399)     // Growth, Income, Success
-val CyberIndigo = Color(0xFF6366F1)      // Main Balance, Primary Accent
-val CyberRose = Color(0xFFF43F5E)        // Expenses, Danger, Alerts
-val CyberAmber = Color(0xFFFBBF24)       // Warnings, Limit highlights
-val CyberSky = Color(0xFF38BDF8)         // Secondary telemetry & hints
+// Primary Mint Accents
+val CyberEmerald = MintElectric             // Fresh Electric Mint #00DC82
+val CyberIndigo = MintDark                  // Deep Emerald Green #059669
+val CyberRose = NordicCoral                 // Crisp Coral Red #F43F5E
+val CyberAmber = NordicAmber                // Warm Amber #F59E0B
+val CyberSky = NordicSky                    // Crisp Ocean Blue #0284C7
 
-// 135° Master Gradient
+// Smooth Nordic Modern Gradient
 val CyberGradient135 = Brush.linearGradient(
-    colors = listOf(CyberEmerald, CyberIndigo, CyberRose),
+    colors = listOf(MintElectric, MintDark, NordicBlue),
     start = Offset(0f, 0f),
     end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
 )
 
 val CyberCardGradient = Brush.linearGradient(
     colors = listOf(
-        Color(0xFF1E293B),
-        Color(0xFF0F172A)
+        CleanWhiteSurface,
+        CleanWhiteSurfaceVariant
     ),
     start = Offset(0f, 0f),
     end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
 )
 
-val CyberGlowIndigo = CyberIndigo.copy(alpha = 0.35f)
-val CyberGlowEmerald = CyberEmerald.copy(alpha = 0.35f)
-val CyberGlowRose = CyberRose.copy(alpha = 0.35f)
+val CyberGlowIndigo = MintGlow
+val CyberGlowEmerald = MintGlow
+val CyberGlowRose = NordicCoral.copy(alpha = 0.15f)
 
 // ==========================================
-// 💡 MODIFIERS & GLOW HELPERS
+// 💡 MODIFIERS & SHADOW HELPERS
 // ==========================================
 
 /**
- * Renders a soft cyberpunk blurred glow behind the composable
+ * Renders a crisp soft shadow or mint accent glow
  */
 fun Modifier.neonGlow(
-    color: Color = CyberIndigo,
-    radius: Dp = 16.dp,
-    alpha: Float = 0.4f,
+    color: Color = MintElectric,
+    radius: Dp = 12.dp,
+    alpha: Float = 0.25f,
     shape: Shape = RoundedCornerShape(16.dp)
 ): Modifier = this.drawBehind {
     val transparentColor = color.copy(alpha = 0f).toArgb()
@@ -93,7 +93,7 @@ fun Modifier.neonGlow(
         frameworkPaint.setShadowLayer(
             radius.toPx(),
             0f,
-            0f,
+            2f,
             shadowColor
         )
         it.drawRoundRect(
@@ -109,21 +109,21 @@ fun Modifier.neonGlow(
 }
 
 // ==========================================
-// 🔲 NEON GLASS CARD COMPONENT
+// 🔲 CLEAN FINTECH CARD COMPONENT
 // ==========================================
 
 @Composable
 fun NeonGlassCard(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(16.dp),
-    borderColor: Color = CyberCardBorder,
+    shape: Shape = RoundedCornerShape(20.dp),
+    borderColor: Color = CleanWhiteBorder,
     glowColor: Color? = null,
-    backgroundColor: Color = CyberCardBgSemi,
+    backgroundColor: Color = CleanWhiteSurface,
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     val glowMod = if (glowColor != null) {
-        Modifier.neonGlow(color = glowColor, radius = 12.dp, alpha = 0.25f, shape = shape)
+        Modifier.neonGlow(color = glowColor, radius = 10.dp, alpha = 0.2f, shape = shape)
     } else Modifier
 
     Surface(
@@ -134,6 +134,7 @@ fun NeonGlassCard(
             ),
         shape = shape,
         color = backgroundColor,
+        shadowElevation = 2.dp,
         border = BorderStroke(1.dp, borderColor)
     ) {
         content()
@@ -141,7 +142,7 @@ fun NeonGlassCard(
 }
 
 // ==========================================
-// 🔘 NEON CTA BUTTON
+// 🔘 ELECTRIC MINT CTA BUTTON
 // ==========================================
 
 @Composable
@@ -149,9 +150,9 @@ fun NeonButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    gradient: Brush = Brush.horizontalGradient(listOf(CyberIndigo, CyberEmerald)),
+    gradient: Brush = Brush.horizontalGradient(listOf(MintDark, MintElectric)),
     enabled: Boolean = true,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+    contentPadding: PaddingValues = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
     leadingIcon: (@Composable () -> Unit)? = null
 ) {
     Surface(
@@ -159,15 +160,15 @@ fun NeonButton(
             .clip(RoundedCornerShape(14.dp))
             .clickable(enabled = enabled) { onClick() }
             .then(
-                if (enabled) Modifier.neonGlow(CyberIndigo, radius = 14.dp, alpha = 0.35f) else Modifier
+                if (enabled) Modifier.neonGlow(MintElectric, radius = 12.dp, alpha = 0.25f) else Modifier
             ),
         shape = RoundedCornerShape(14.dp),
         color = Color.Transparent,
-        border = BorderStroke(1.dp, if (enabled) CyberEmerald.copy(alpha = 0.8f) else DarkBorder)
+        border = BorderStroke(1.dp, if (enabled) MintElectric.copy(alpha = 0.6f) else CleanWhiteBorder)
     ) {
         Box(
             modifier = Modifier
-                .background(if (enabled) gradient else Brush.linearGradient(listOf(DarkSurfaceVariant, DarkSurface)))
+                .background(if (enabled) gradient else Brush.linearGradient(listOf(CleanWhiteSurfaceVariant, CleanWhiteBorder)))
                 .padding(contentPadding),
             contentAlignment = Alignment.Center
         ) {
@@ -180,10 +181,10 @@ fun NeonButton(
                 }
                 Text(
                     text = text,
-                    color = if (enabled) Color.White else TextMuted,
+                    color = if (enabled) Color.White else TextMutedDark,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    letterSpacing = 0.5.sp
+                    letterSpacing = 0.3.sp
                 )
             }
         }
@@ -198,11 +199,11 @@ fun NeonButton(
 fun NeonFinancialText(
     amountText: String,
     modifier: Modifier = Modifier,
-    color: Color = Color.White,
+    color: Color = TextPrimaryDark,
     fontSize: androidx.compose.ui.unit.TextUnit = 18.sp,
     fontWeight: FontWeight = FontWeight.Bold,
     glow: Boolean = false,
-    glowColor: Color = color
+    glowColor: Color = MintElectric
 ) {
     Text(
         text = amountText,
@@ -212,7 +213,8 @@ fun NeonFinancialText(
         fontFamily = FontFamily.Monospace,
         letterSpacing = (-0.5).sp,
         modifier = modifier.then(
-            if (glow) Modifier.neonGlow(color = glowColor, radius = 10.dp, alpha = 0.3f) else Modifier
+            if (glow) Modifier.neonGlow(color = glowColor, radius = 8.dp, alpha = 0.15f) else Modifier
         )
     )
 }
+

@@ -101,8 +101,8 @@ fun TransactionRowItem(
             modifier = modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(CyberCardBg)
-                .border(BorderStroke(1.dp, CyberCardBorder), RoundedCornerShape(16.dp))
+                .background(CleanWhiteSurface)
+                .border(BorderStroke(1.dp, CleanWhiteBorder), RoundedCornerShape(16.dp))
                 .clickable(enabled = onClick != null) { onClick?.invoke() }
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -115,16 +115,15 @@ fun TransactionRowItem(
                 Box(
                     modifier = Modifier
                         .size(38.dp)
-                        .neonGlow(color = iconTint, radius = 6.dp, alpha = 0.25f, shape = CircleShape)
                         .clip(CircleShape)
-                        .background(CyberBgAlt)
-                        .border(1.dp, iconTint.copy(alpha = 0.45f), CircleShape),
+                        .background(if (isExpense) NordicCoralLight else MintLight)
+                        .border(1.dp, if (isExpense) NordicCoral.copy(alpha = 0.3f) else MintElectric.copy(alpha = 0.4f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = catIcon,
                         contentDescription = item.category,
-                        tint = iconTint,
+                        tint = if (isExpense) NordicCoral else MintDark,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -132,16 +131,16 @@ fun TransactionRowItem(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = topTitle,
-                        color = TextPrimary,
+                        color = TextPrimaryDark,
                         fontSize = 13.sp,
-                        fontWeight = if (hasSubcategory) FontWeight.Bold else FontWeight.Medium,
+                        fontWeight = if (hasSubcategory) FontWeight.Bold else FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                     if (bottomTitle.isNotEmpty()) {
                         Text(
                             text = bottomTitle,
-                            color = TextSecondary,
+                            color = TextSecondaryDark,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Normal,
                             maxLines = 1,
@@ -153,7 +152,7 @@ fun TransactionRowItem(
             Spacer(modifier = Modifier.width(8.dp))
             NeonFinancialText(
                 amountText = "$prefix${numberFormat.format(item.amount)} ₽",
-                color = if (isExpense) TextPrimary else CyberEmerald,
+                color = if (isExpense) TextPrimaryDark else MintDark,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )

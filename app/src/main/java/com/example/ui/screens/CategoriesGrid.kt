@@ -40,16 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.db.CategoryEntity
 import com.example.ui.components.formatFullCurrency
-import com.example.ui.theme.Emerald400
-import com.example.ui.theme.Indigo500
-import com.example.ui.theme.Rose500
-import com.example.ui.theme.Slate300
-import com.example.ui.theme.Slate800
-import com.example.ui.theme.Slate900
-import com.example.ui.theme.CyberCardBg
-import com.example.ui.theme.CyberBg
-import com.example.ui.theme.NeonGlassCard
-import com.example.ui.theme.NeonFinancialText
+import com.example.ui.theme.*
 import androidx.compose.ui.graphics.Brush
 
 @Composable
@@ -137,16 +128,16 @@ fun CategoriesGrid(
         ) {
             Text(
                 text = "КАТЕГОРИИ",
-                color = Slate300,
+                color = TextSecondaryDark,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 letterSpacing = 1.sp
             )
             Text(
                 text = "Все категории",
-                color = Indigo500,
+                color = MintDark,
                 fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.clickable { onShowLimitsClick() }
             )
         }
@@ -161,12 +152,12 @@ fun CategoriesGrid(
 
                 NeonGlassCard(
                     onClick = { onShowLimitsClick() },
-                    shape = RoundedCornerShape(16.dp),
-                    borderColor = color.copy(alpha = 0.35f),
-                    backgroundColor = CyberCardBg,
+                    shape = RoundedCornerShape(18.dp),
+                    borderColor = CleanWhiteBorder,
+                    backgroundColor = CleanWhiteSurface,
                     modifier = Modifier
                         .weight(1f)
-                        .height(122.dp)
+                        .height(124.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -178,7 +169,7 @@ fun CategoriesGrid(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(color.copy(alpha = 0.12f))
+                                .background(color.copy(alpha = 0.14f))
                                 .border(1.dp, color.copy(alpha = 0.4f), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
@@ -192,9 +183,9 @@ fun CategoriesGrid(
 
                         Text(
                             text = name,
-                            color = Slate300,
+                            color = TextPrimaryDark,
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                             lineHeight = 13.sp,
@@ -203,7 +194,7 @@ fun CategoriesGrid(
 
                         NeonFinancialText(
                             amountText = formatFullCurrency(amount),
-                            color = Color.White,
+                            color = TextPrimaryDark,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -213,7 +204,7 @@ fun CategoriesGrid(
                                 .fillMaxWidth()
                                 .height(4.dp)
                                 .clip(RoundedCornerShape(2.dp))
-                                .background(CyberBg)
+                                .background(CleanWhiteSurfaceVariant)
                         ) {
                             Box(
                                 modifier = Modifier
@@ -242,12 +233,12 @@ fun CategoriesGrid(
 
                 NeonGlassCard(
                     onClick = { onShowLimitsClick() },
-                    shape = RoundedCornerShape(16.dp),
-                    borderColor = color.copy(alpha = 0.35f),
-                    backgroundColor = CyberCardBg,
+                    shape = RoundedCornerShape(18.dp),
+                    borderColor = CleanWhiteBorder,
+                    backgroundColor = CleanWhiteSurface,
                     modifier = Modifier
                         .weight(1f)
-                        .height(122.dp)
+                        .height(124.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -259,7 +250,7 @@ fun CategoriesGrid(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(color.copy(alpha = 0.12f))
+                                .background(color.copy(alpha = 0.14f))
                                 .border(1.dp, color.copy(alpha = 0.4f), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
@@ -273,9 +264,9 @@ fun CategoriesGrid(
 
                         Text(
                             text = name,
-                            color = Slate300,
+                            color = TextPrimaryDark,
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                             lineHeight = 13.sp,
@@ -284,7 +275,7 @@ fun CategoriesGrid(
 
                         NeonFinancialText(
                             amountText = formatFullCurrency(amount),
-                            color = Color.White,
+                            color = TextPrimaryDark,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -294,7 +285,7 @@ fun CategoriesGrid(
                                 .fillMaxWidth()
                                 .height(4.dp)
                                 .clip(RoundedCornerShape(2.dp))
-                                .background(CyberBg)
+                                .background(CleanWhiteSurfaceVariant)
                         ) {
                             Box(
                                 modifier = Modifier
@@ -314,13 +305,13 @@ fun CategoriesGrid(
 
             NeonGlassCard(
                 onClick = { onShowLimitsClick() },
-                shape = RoundedCornerShape(16.dp),
-                borderColor = Indigo500.copy(alpha = 0.4f),
-                backgroundColor = CyberCardBg,
-                glowColor = Indigo500.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(18.dp),
+                borderColor = CleanWhiteBorder,
+                backgroundColor = CleanWhiteSurface,
+                glowColor = MintGlow,
                 modifier = Modifier
                     .weight(1f)
-                    .height(122.dp)
+                    .height(124.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -333,7 +324,7 @@ fun CategoriesGrid(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(Indigo500),
+                            .background(MintElectric),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -346,7 +337,7 @@ fun CategoriesGrid(
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = "Добавить",
-                        color = Indigo500,
+                        color = MintDark,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1
